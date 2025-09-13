@@ -1,0 +1,44 @@
+{
+  "name": "globapay-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Multi-tenant payments orchestration platform",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "packageManager": "pnpm@8.15.0",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "dev:web:mock": "cross-env NEXT_PUBLIC_MOCK=1 turbo dev --filter=@globapay/web",
+    "mock:server": "prism mock contracts/openapi.yaml -p 4010",
+    "lint": "turbo lint",
+    "typecheck": "turbo typecheck",
+    "test": "turbo test",
+    "test:unit": "turbo test:unit",
+    "test:coverage-check": "turbo test:coverage-check",
+    "clean": "turbo clean",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+    "prepare": "husky install"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^18.4.4",
+    "@commitlint/config-conventional": "^18.4.4",
+    "@stoplight/prism-cli": "^5.14.2",
+    "@vitest/ui": "^3.2.4",
+    "cross-env": "^10.0.0",
+    "husky": "^8.0.3",
+    "lint-staged": "^15.2.0",
+    "msw": "^2.11.2",
+    "prettier": "^3.1.1",
+    "turbo": "^1.11.2",
+    "typescript": "^5.3.3",
+    "vitest": "^3.2.4"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "pnpm": ">=8.0.0"
+  }
+}

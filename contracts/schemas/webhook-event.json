@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/webhook-event.json",
+  "title": "Webhook Event",
+  "description": "A webhook event for system notifications",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the webhook event"
+    },
+    "type": {
+      "type": "string",
+      "enum": [
+        "payment.completed",
+        "payment.failed",
+        "payment.refunded",
+        "merchant.kyb.approved",
+        "merchant.kyb.rejected",
+        "merchant.status.updated",
+        "fraud.score.updated",
+        "checkout.session.completed",
+        "checkout.session.expired"
+      ],
+      "description": "Event type"
+    },
+    "source": {
+      "type": "string",
+      "enum": ["payment", "kyb", "fraud", "internal"],
+      "description": "Source system that generated the event"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant associated with this event"
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the resource that triggered the event"
+    },
+    "data": {
+      "type": "object",
+      "description": "Event payload data"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "delivered", "failed", "retrying"],
+      "description": "Webhook delivery status"
+    },
+    "attempts": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of delivery attempts"
+    },
+    "maxAttempts": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10,
+      "description": "Maximum delivery attempts"
+    },
+    "nextAttemptAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Next delivery attempt timestamp"
+    },
+    "lastAttemptAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last delivery attempt timestamp"
+    },
+    "deliveredAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the webhook was successfully delivered"
+    },
+    "webhookUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Target webhook URL"
+    },
+    "httpStatus": {
+      "type": "integer",
+      "minimum": 100,
+      "maximum": 599,
+      "description": "Last HTTP response status"
+    },
+    "responseBody": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Last HTTP response body (truncated)"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Webhook signature for verification"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "type", "source", "merchantId", "resourceId", "data", "status", "attempts", "maxAttempts", "webhookUrl", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

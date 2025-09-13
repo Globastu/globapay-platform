@@ -1,0 +1,26 @@
+{
+  "name": "@globapay/sdk",
+  "version": "0.1.0",
+  "private": true,
+  "description": "OpenAPI-generated client SDK for Globapay Platform",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "generate": "openapi-typescript ../../contracts/openapi.yaml --output src/generated/types.ts",
+    "build": "tsc",
+    "lint": "eslint . --ext .ts",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest",
+    "test:unit": "vitest run"
+  },
+  "dependencies": {
+    "openapi-fetch": "^0.8.2"
+  },
+  "devDependencies": {
+    "@globapay/config": "workspace:*",
+    "eslint": "^8.56.0",
+    "openapi-typescript": "^6.7.3",
+    "typescript": "^5.3.3",
+    "vitest": "^1.2.0"
+  }
+}

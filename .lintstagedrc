@@ -1,0 +1,19 @@
+{
+  "*.{js,jsx,ts,tsx}": [
+    "eslint --fix",
+    "prettier --write"
+  ],
+  "*.{json,md,css}": [
+    "prettier --write"
+  ],
+  "apps/api/**/*.{ts,js}": [
+    "eslint --fix",
+    "prettier --write",
+    "pnpm --filter @globapay/api test:unit --run --reporter=basic"
+  ],
+  "apps/web/**/*.{ts,tsx,js,jsx}": [
+    "eslint --fix", 
+    "prettier --write",
+    "pnpm --filter @globapay/web test:unit --run --reporter=basic"
+  ]
+}

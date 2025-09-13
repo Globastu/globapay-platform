@@ -1,0 +1,117 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/merchant.json",
+  "title": "Merchant",
+  "description": "A merchant entity that can process payments",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the merchant"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Parent organization ID"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Merchant business name"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 50,
+      "description": "URL-safe identifier"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "active", "suspended", "rejected"],
+      "description": "Current merchant status"
+    },
+    "kybStatus": {
+      "type": "string",
+      "enum": ["not_started", "pending", "approved", "rejected", "expired"],
+      "description": "Know Your Business verification status"
+    },
+    "businessInfo": {
+      "type": "object",
+      "properties": {
+        "legalName": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 255
+        },
+        "taxId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 50
+        },
+        "website": {
+          "type": "string",
+          "format": "uri"
+        },
+        "address": {
+          "type": "object",
+          "properties": {
+            "line1": { "type": "string", "maxLength": 255 },
+            "line2": { "type": "string", "maxLength": 255 },
+            "city": { "type": "string", "maxLength": 100 },
+            "state": { "type": "string", "maxLength": 100 },
+            "postalCode": { "type": "string", "maxLength": 20 },
+            "country": { "type": "string", "pattern": "^[A-Z]{2}$" }
+          },
+          "required": ["line1", "city", "country"],
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "paymentMethods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["card", "bank_transfer", "wallet"]
+      },
+      "description": "Supported payment methods"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "returnUrl": {
+          "type": "string",
+          "format": "uri"
+        },
+        "cancelUrl": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "organizationId", "name", "slug", "status", "kybStatus", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

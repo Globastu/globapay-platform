@@ -1,0 +1,120 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/checkout-session.json",
+  "title": "Checkout Session",
+  "description": "A checkout session for hosted or embedded payment flow",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the checkout session"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant that owns this checkout session"
+    },
+    "paymentLinkId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Associated payment link ID"
+    },
+    "mode": {
+      "type": "string",
+      "enum": ["hosted", "embedded"],
+      "description": "Checkout flow type"
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Amount in smallest currency unit"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code"
+    },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "paymentMethods": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": ["card", "bank_transfer", "wallet"]
+      },
+      "minItems": 1
+    },
+    "status": {
+      "type": "string",
+      "enum": ["open", "complete", "expired"],
+      "description": "Current session status"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Checkout URL (for hosted mode)"
+    },
+    "clientSecret": {
+      "type": "string",
+      "description": "Client secret for embedded checkout"
+    },
+    "successUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Redirect URL on successful payment"
+    },
+    "cancelUrl": {
+      "type": "string",
+      "format": "uri",
+      "description": "Redirect URL on payment cancellation"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the session expires"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the session was completed"
+    },
+    "transactionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Associated transaction ID if completed"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "merchantId", "mode", "amount", "currency", "paymentMethods", "status", "expiresAt", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

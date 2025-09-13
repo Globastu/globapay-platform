@@ -1,0 +1,85 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/role.json",
+  "title": "Role",
+  "description": "A role that defines a set of permissions",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the role"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Organization that owns this role"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "description": "Role name"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Role description"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["system", "custom"],
+      "description": "Whether this is a system-defined or custom role"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "merchants:read",
+          "merchants:write",
+          "merchants:delete",
+          "transactions:read",
+          "transactions:refund",
+          "payment_links:read",
+          "payment_links:write",
+          "payment_links:delete",
+          "reports:read",
+          "reports:generate",
+          "webhooks:read",
+          "webhooks:replay",
+          "users:read",
+          "users:write",
+          "users:delete",
+          "api_keys:read",
+          "api_keys:write",
+          "api_keys:delete",
+          "audit_logs:read",
+          "organization:read",
+          "organization:write"
+        ]
+      },
+      "description": "Permissions granted by this role"
+    },
+    "isDefault": {
+      "type": "boolean",
+      "description": "Whether this role is assigned by default to new users"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "organizationId", "name", "type", "permissions", "isDefault", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

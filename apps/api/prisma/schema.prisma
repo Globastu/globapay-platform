@@ -1,0 +1,602 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums based on OpenAPI schema definitions
+enum OrganizationType {
+  PLATFORM
+  MERCHANT
+}
+
+enum OrganizationStatus {
+  ACTIVE
+  SUSPENDED
+  PENDING
+}
+
+enum MerchantStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  REJECTED
+}
+
+enum KybStatus {
+  NOT_STARTED
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
+}
+
+enum PaymentMethod {
+  CARD
+  BANK_TRANSFER
+  WALLET
+}
+
+enum PaymentLinkStatus {
+  PENDING
+  COMPLETED
+  EXPIRED
+  VOIDED
+}
+
+enum CheckoutSessionMode {
+  HOSTED
+  EMBEDDED
+}
+
+enum CheckoutSessionStatus {
+  OPEN
+  COMPLETE
+  EXPIRED
+}
+
+enum TransactionStatus {
+  PENDING
+  AUTHORIZED
+  CAPTURED
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+
+enum RefundReason {
+  DUPLICATE
+  FRAUDULENT
+  REQUESTED_BY_CUSTOMER
+  OTHER
+}
+
+enum RefundStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  CANCELLED
+}
+
+enum RefundInitiatedByType {
+  MANUAL
+  AUTOMATIC
+  CHARGEBACK
+}
+
+enum FraudDecision {
+  APPROVE
+  REVIEW
+  DECLINE
+}
+
+enum WebhookEventType {
+  PAYMENT_COMPLETED
+  PAYMENT_FAILED
+  PAYMENT_REFUNDED
+  MERCHANT_KYB_APPROVED
+  MERCHANT_KYB_REJECTED
+  MERCHANT_STATUS_UPDATED
+  FRAUD_SCORE_UPDATED
+  CHECKOUT_SESSION_COMPLETED
+  CHECKOUT_SESSION_EXPIRED
+}
+
+enum WebhookEventSource {
+  PAYMENT
+  KYB
+  FRAUD
+  INTERNAL
+}
+
+enum WebhookEventStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  RETRYING
+}
+
+enum AuditLogAction {
+  USER_LOGIN
+  USER_LOGOUT
+  MERCHANT_CREATE
+  MERCHANT_UPDATE
+  MERCHANT_STATUS_CHANGE
+  PAYMENT_LINK_CREATE
+  PAYMENT_LINK_VOID
+  TRANSACTION_REFUND
+  WEBHOOK_REPLAY
+  REPORT_GENERATE
+  API_KEY_CREATE
+  API_KEY_REVOKE
+}
+
+enum AuditLogResourceType {
+  USER
+  MERCHANT
+  PAYMENT_LINK
+  TRANSACTION
+  REFUND
+  API_KEY
+  WEBHOOK
+  REPORT
+}
+
+enum AuditLogOutcome {
+  SUCCESS
+  FAILURE
+  PARTIAL
+}
+
+enum Permission {
+  MERCHANTS_READ
+  MERCHANTS_WRITE
+  MERCHANTS_DELETE
+  TRANSACTIONS_READ
+  TRANSACTIONS_REFUND
+  PAYMENT_LINKS_READ
+  PAYMENT_LINKS_WRITE
+  PAYMENT_LINKS_DELETE
+  REPORTS_READ
+  REPORTS_GENERATE
+  WEBHOOKS_READ
+  WEBHOOKS_REPLAY
+  USERS_READ
+  USERS_WRITE
+  USERS_DELETE
+  API_KEYS_READ
+  API_KEYS_WRITE
+  API_KEYS_DELETE
+  AUDIT_LOGS_READ
+  ORGANIZATION_READ
+  ORGANIZATION_WRITE
+}
+
+enum ThreeDsStatus {
+  AUTHENTICATED
+  NOT_AUTHENTICATED
+  ATTEMPTED
+  UNAVAILABLE
+  REJECTED
+}
+
+// Core entity models
+
+model Organization {
+  id        String             @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String             @unique
+  type      OrganizationType
+  status    OrganizationStatus @default(PENDING)
+  settings  Json?              @db.JsonB
+  metadata  Json?              @db.JsonB
+  createdAt DateTime           @default(now()) @map("created_at")
+  updatedAt DateTime           @updatedAt @map("updated_at")
+
+  // Relations
+  users        UserOrgRole[]
+  merchants    Merchant[]
+  auditLogs    AuditLog[]
+  roles        Role[]
+  apiKeys      ApiKey[]
+
+  @@map("organizations")
+}
+
+model Merchant {
+  id               String        @id @default(uuid()) @db.Uuid
+  organizationId   String?       @map("organization_id") @db.Uuid
+  name             String
+  slug             String        @unique
+  status           MerchantStatus @default(PENDING)
+  kybStatus        KybStatus     @default(NOT_STARTED) @map("kyb_status")
+  businessInfo     Json?         @map("business_info") @db.JsonB
+  paymentMethods   PaymentMethod[] @map("payment_methods")
+  settings         Json?         @db.JsonB
+  metadata         Json?         @db.JsonB
+  createdAt        DateTime      @default(now()) @map("created_at")
+  updatedAt        DateTime      @updatedAt @map("updated_at")
+
+  // Relations
+  organization     Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+  paymentLinks     PaymentLink[]
+  checkoutSessions CheckoutSession[]
+  transactions     Transaction[]
+  fraudChecks      FraudCheck[]
+  refunds          Refund[]
+  webhookEvents    WebhookEvent[]
+  auditLogs        AuditLog[]
+  apiKeys          ApiKey[]
+
+  @@index([organizationId])
+  @@index([status])
+  @@index([kybStatus])
+  @@index([createdAt])
+  @@map("merchants")
+}
+
+model User {
+  id             String     @id @default(uuid()) @db.Uuid
+  email          String     @unique
+  name           String
+  status         UserStatus @default(PENDING_VERIFICATION)
+  emailVerified  Boolean    @default(false) @map("email_verified")
+  passwordHash   String     @map("password_hash")
+  lastLoginAt    DateTime?  @map("last_login_at")
+  lastLoginIp    String?    @map("last_login_ip")
+  mfaEnabled     Boolean    @default(false) @map("mfa_enabled")
+  mfaSecret      String?    @map("mfa_secret")
+  preferences    Json?      @db.JsonB
+  metadata       Json?      @db.JsonB
+  createdAt      DateTime   @default(now()) @map("created_at")
+  updatedAt      DateTime   @updatedAt @map("updated_at")
+
+  // Relations
+  organizations  UserOrgRole[]
+  auditLogs      AuditLog[]
+  refundsInitiated Refund[] @relation("RefundInitiatedBy")
+
+  @@index([email])
+  @@index([status])
+  @@map("users")
+}
+
+model Role {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  name           String
+  description    String?
+  type           String       // "system" or "custom"
+  permissions    Permission[]
+  isDefault      Boolean      @default(false) @map("is_default")
+  metadata       Json?        @db.JsonB
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
+
+  // Relations
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  userOrgRoles   UserOrgRole[]
+
+  @@unique([organizationId, name])
+  @@index([organizationId])
+  @@map("roles")
+}
+
+model UserOrgRole {
+  id             String      @id @default(uuid()) @db.Uuid
+  userId         String      @map("user_id") @db.Uuid
+  organizationId String      @map("organization_id") @db.Uuid
+  roleId         String      @map("role_id") @db.Uuid
+  permissions    Permission[] // Direct permissions in addition to role permissions
+  createdAt      DateTime    @default(now()) @map("created_at")
+  updatedAt      DateTime    @updatedAt @map("updated_at")
+
+  // Relations
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role           Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([roleId])
+  @@map("user_org_roles")
+}
+
+model PaymentLink {
+  id              String            @id @default(uuid()) @db.Uuid
+  merchantId      String            @map("merchant_id") @db.Uuid
+  reference       String?
+  amount          Int               // Amount in smallest currency unit
+  currency        String            @db.Char(3)
+  description     String
+  customerEmail   String?           @map("customer_email")
+  customerName    String?           @map("customer_name")
+  status          PaymentLinkStatus @default(PENDING)
+  shortCode       String            @unique @map("short_code") // For generating URLs
+  expiresAt       DateTime          @map("expires_at")
+  completedAt     DateTime?         @map("completed_at")
+  transactionId   String?           @unique @map("transaction_id") @db.Uuid
+  metadata        Json?             @db.JsonB
+  createdAt       DateTime          @default(now()) @map("created_at")
+  updatedAt       DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  merchant        Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  transaction     Transaction?      @relation(fields: [transactionId], references: [id])
+  checkoutSessions CheckoutSession[]
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([shortCode])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("payment_links")
+}
+
+model CheckoutSession {
+  id              String                @id @default(uuid()) @db.Uuid
+  merchantId      String                @map("merchant_id") @db.Uuid
+  paymentLinkId   String?               @map("payment_link_id") @db.Uuid
+  mode            CheckoutSessionMode
+  amount          Int                   // Amount in smallest currency unit
+  currency        String                @db.Char(3)
+  description     String?
+  customerEmail   String?               @map("customer_email")
+  customerName    String?               @map("customer_name")
+  customer        Json?                 @db.JsonB
+  paymentMethods  PaymentMethod[]       @map("payment_methods")
+  status          String                @default("active") // active, expired, completed, cancelled
+  token           String                @unique // For secure session identification
+  checkoutUrl     String                @map("checkout_url")
+  returnUrl       String?               @map("return_url")
+  cancelUrl       String?               @map("cancel_url")
+  expiresAt       DateTime              @map("expires_at")
+  completedAt     DateTime?             @map("completed_at")
+  transactionId             String?               @unique @map("transaction_id") @db.Uuid
+  // 3DS and fraud detection fields
+  require3DS                Boolean               @default(false) @map("require_3ds")
+  skipFraudCheck            Boolean               @default(false) @map("skip_fraud_check")
+  fraudScore                Int?                  @map("fraud_score")
+  fraudDecision             FraudDecision?        @map("fraud_decision")
+  fraudProviderTransactionId String?             @map("fraud_provider_transaction_id")
+  // Metadata and timestamps
+  metadata        Json?                 @db.JsonB
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  // Relations
+  merchant        Merchant              @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  paymentLink     PaymentLink?          @relation(fields: [paymentLinkId], references: [id])
+  transaction     Transaction?          @relation(fields: [transactionId], references: [id])
+  fraudChecks     FraudCheck[]
+
+  @@index([merchantId])
+  @@index([paymentLinkId])
+  @@index([status])
+  @@index([token])
+  @@index([createdAt])
+  @@index([expiresAt])
+  @@map("checkout_sessions")
+}
+
+model Transaction {
+  id                String            @id @default(uuid()) @db.Uuid
+  merchantId        String            @map("merchant_id") @db.Uuid
+  checkoutSessionId String?           @map("checkout_session_id") @db.Uuid
+  reference         String?
+  amount            Int               // Amount in smallest currency unit
+  currency          String            @db.Char(3)
+  status            TransactionStatus @default(PENDING)
+  paymentMethod     Json              @map("payment_method") @db.JsonB
+  customer          Json?             @db.JsonB
+  // Fraud detection fields
+  fraudScore        Int?              @map("fraud_score")
+  fraudDecision     FraudDecision?    @map("fraud_decision")
+  fraudProviderTransactionId String? @map("fraud_provider_transaction_id")
+  threeDsResult     Json?             @map("three_ds_result") @db.JsonB
+  fees              Json?             @db.JsonB
+  pspTransactionId  String?           @map("psp_transaction_id")
+  metadata          Json?             @db.JsonB
+  processedAt       DateTime?         @map("processed_at")
+  createdAt         DateTime          @default(now()) @map("created_at")
+  updatedAt         DateTime          @updatedAt @map("updated_at")
+
+  // Relations
+  merchant          Merchant          @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  checkoutSession   CheckoutSession?
+  paymentLink       PaymentLink?
+  refunds           Refund[]
+  fraudChecks       FraudCheck[]
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([processedAt])
+  @@index([pspTransactionId])
+  @@map("transactions")
+}
+
+model FraudCheck {
+  id                     String           @id @default(uuid()) @db.Uuid
+  checkoutSessionId      String?          @map("checkout_session_id") @db.Uuid
+  transactionId          String?          @map("transaction_id") @db.Uuid
+  merchantId             String           @map("merchant_id") @db.Uuid
+  
+  // Request data (JSON blob)
+  requestData            Json             @map("request_data") @db.JsonB
+  
+  // Results
+  score                  Int
+  decision               FraudDecision
+  confidence             Int
+  riskFactors            Json             @map("risk_factors") @db.JsonB
+  rules                  Json             @db.JsonB
+  
+  // Provider info
+  providerId             String           @map("provider_id")
+  providerTransactionId  String           @map("provider_transaction_id")
+  processingTime         Int              @map("processing_time") // milliseconds
+  
+  // Status tracking
+  status                 String           @default("completed") // completed, failed, timeout
+  error                  String?
+  
+  // Timestamps
+  createdAt              DateTime         @default(now()) @map("created_at")
+  updatedAt              DateTime         @updatedAt @map("updated_at")
+  
+  // Follow-up
+  actualOutcome          String?          @map("actual_outcome") // approved, declined, chargeback, legitimate
+  outcomeUpdatedAt       DateTime?        @map("outcome_updated_at")
+  
+  // Additional context
+  recommendation         String?
+  metadata               Json?            @db.JsonB
+  
+  // Relations
+  merchant               Merchant         @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  checkoutSession        CheckoutSession? @relation(fields: [checkoutSessionId], references: [id])
+  transaction            Transaction?     @relation(fields: [transactionId], references: [id])
+  
+  @@index([merchantId])
+  @@index([decision])
+  @@index([score])
+  @@index([createdAt])
+  @@index([providerTransactionId])
+  @@map("fraud_checks")
+}
+
+model Refund {
+  id              String                @id @default(uuid()) @db.Uuid
+  transactionId   String                @map("transaction_id") @db.Uuid
+  merchantId      String                @map("merchant_id") @db.Uuid
+  amount          Int                   // Amount in smallest currency unit
+  currency        String                @db.Char(3)
+  reason          RefundReason
+  description     String?
+  status          RefundStatus          @default(PENDING)
+  pspRefundId     String?               @map("psp_refund_id")
+  initiatedByType RefundInitiatedByType @map("initiated_by_type")
+  initiatedByUserId String?             @map("initiated_by_user_id") @db.Uuid
+  metadata        Json?                 @db.JsonB
+  processedAt     DateTime?             @map("processed_at")
+  createdAt       DateTime              @default(now()) @map("created_at")
+  updatedAt       DateTime              @updatedAt @map("updated_at")
+
+  // Relations
+  transaction     Transaction           @relation(fields: [transactionId], references: [id], onDelete: Cascade)
+  merchant        Merchant              @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  initiatedByUser User?                 @relation("RefundInitiatedBy", fields: [initiatedByUserId], references: [id])
+
+  @@index([transactionId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([createdAt])
+  @@index([processedAt])
+  @@map("refunds")
+}
+
+model ApiKey {
+  id             String          @id @default(uuid()) @db.Uuid
+  name           String
+  organizationId String          @map("organization_id") @db.Uuid
+  merchantId     String?         @map("merchant_id") @db.Uuid
+  keyHash        String          @unique @map("key_hash")
+  keyPrefix      String          @map("key_prefix") @db.Char(8)
+  permissions    Permission[]
+  isActive       Boolean         @default(true) @map("is_active")
+  expiresAt      DateTime?       @map("expires_at")
+  lastUsedAt     DateTime?       @map("last_used_at")
+  lastUsedIp     String?         @map("last_used_ip")
+  metadata       Json?           @db.JsonB
+  createdAt      DateTime        @default(now()) @map("created_at")
+  updatedAt      DateTime        @updatedAt @map("updated_at")
+
+  // Relations
+  organization   Organization    @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  merchant       Merchant?       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([merchantId])
+  @@index([keyPrefix])
+  @@index([isActive])
+  @@index([expiresAt])
+  @@map("api_keys")
+}
+
+model WebhookEvent {
+  id             String              @id @default(uuid()) @db.Uuid
+  type           WebhookEventType
+  source         WebhookEventSource
+  merchantId     String              @map("merchant_id") @db.Uuid
+  resourceId     String              @map("resource_id") @db.Uuid
+  data           Json                @db.JsonB
+  status         WebhookEventStatus  @default(PENDING)
+  attempts       Int                 @default(0)
+  maxAttempts    Int                 @default(5) @map("max_attempts")
+  nextAttemptAt  DateTime?           @map("next_attempt_at")
+  lastAttemptAt  DateTime?           @map("last_attempt_at")
+  deliveredAt    DateTime?           @map("delivered_at")
+  webhookUrl     String              @map("webhook_url")
+  httpStatus     Int?                @map("http_status")
+  responseBody   String?             @map("response_body")
+  signature      String?
+  metadata       Json?               @db.JsonB
+  createdAt      DateTime            @default(now()) @map("created_at")
+  updatedAt      DateTime            @updatedAt @map("updated_at")
+
+  // Relations
+  merchant       Merchant            @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([type])
+  @@index([source])
+  @@index([nextAttemptAt])
+  @@index([createdAt])
+  @@map("webhook_events")
+}
+
+model AuditLog {
+  id             String               @id @default(uuid()) @db.Uuid
+  organizationId String               @map("organization_id") @db.Uuid
+  merchantId     String?              @map("merchant_id") @db.Uuid
+  userId         String               @map("user_id") @db.Uuid
+  action         AuditLogAction
+  resourceType   AuditLogResourceType @map("resource_type")
+  resourceId     String?              @map("resource_id") @db.Uuid
+  details        Json?                @db.JsonB
+  outcome        AuditLogOutcome
+  errorMessage   String?              @map("error_message")
+  metadata       Json?                @db.JsonB
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  // Relations
+  organization   Organization         @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  merchant       Merchant?            @relation(fields: [merchantId], references: [id])
+  user           User                 @relation(fields: [userId], references: [id])
+
+  @@index([organizationId])
+  @@index([merchantId])
+  @@index([userId])
+  @@index([action])
+  @@index([resourceType])
+  @@index([outcome])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

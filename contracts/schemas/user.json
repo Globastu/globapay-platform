@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/user.json",
+  "title": "User",
+  "description": "A user account in the system",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the user"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Organization the user belongs to"
+    },
+    "email": {
+      "type": "string",
+      "format": "email",
+      "description": "User email address (unique)"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "User full name"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive", "suspended", "pending_verification"],
+      "description": "Current user status"
+    },
+    "emailVerified": {
+      "type": "boolean",
+      "description": "Whether the user's email is verified"
+    },
+    "roles": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "description": "Role IDs assigned to the user"
+    },
+    "permissions": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "merchants:read",
+          "merchants:write",
+          "merchants:delete",
+          "transactions:read",
+          "transactions:refund",
+          "payment_links:read",
+          "payment_links:write",
+          "payment_links:delete",
+          "reports:read",
+          "reports:generate",
+          "webhooks:read",
+          "webhooks:replay",
+          "users:read",
+          "users:write",
+          "users:delete",
+          "api_keys:read",
+          "api_keys:write",
+          "api_keys:delete",
+          "audit_logs:read"
+        ]
+      },
+      "description": "Direct permissions assigned to the user"
+    },
+    "lastLoginAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Last login timestamp"
+    },
+    "lastLoginIp": {
+      "type": "string",
+      "description": "IP address of last login"
+    },
+    "mfaEnabled": {
+      "type": "boolean",
+      "description": "Whether multi-factor authentication is enabled"
+    },
+    "preferences": {
+      "type": "object",
+      "properties": {
+        "timezone": {
+          "type": "string",
+          "description": "IANA timezone identifier"
+        },
+        "dateFormat": {
+          "type": "string",
+          "enum": ["MM/dd/yyyy", "dd/MM/yyyy", "yyyy-MM-dd"]
+        },
+        "notifications": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "boolean"
+            },
+            "webhook": {
+              "type": "boolean"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "organizationId", "email", "name", "status", "emailVerified", "roles", "permissions", "mfaEnabled", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

@@ -1,0 +1,103 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/audit-log.json",
+  "title": "Audit Log",
+  "description": "An audit log entry for system actions",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the audit log entry"
+    },
+    "organizationId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Organization where the action occurred"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant associated with the action (if applicable)"
+    },
+    "userId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "User who performed the action"
+    },
+    "action": {
+      "type": "string",
+      "enum": [
+        "user.login",
+        "user.logout",
+        "merchant.create",
+        "merchant.update",
+        "merchant.status.change",
+        "payment_link.create",
+        "payment_link.void",
+        "transaction.refund",
+        "webhook.replay",
+        "report.generate",
+        "api_key.create",
+        "api_key.revoke"
+      ],
+      "description": "Action that was performed"
+    },
+    "resourceType": {
+      "type": "string",
+      "enum": ["user", "merchant", "payment_link", "transaction", "refund", "api_key", "webhook", "report"],
+      "description": "Type of resource that was acted upon"
+    },
+    "resourceId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "ID of the resource that was acted upon"
+    },
+    "details": {
+      "type": "object",
+      "properties": {
+        "changes": {
+          "type": "object",
+          "description": "Before/after values for updates"
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "Reason for the action"
+        },
+        "ipAddress": {
+          "type": "string",
+          "description": "IP address of the actor"
+        },
+        "userAgent": {
+          "type": "string",
+          "maxLength": 500,
+          "description": "User agent string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "outcome": {
+      "type": "string",
+      "enum": ["success", "failure", "partial"],
+      "description": "Outcome of the action"
+    },
+    "errorMessage": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Error message if action failed"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "organizationId", "userId", "action", "resourceType", "outcome", "createdAt"],
+  "additionalProperties": false
+}

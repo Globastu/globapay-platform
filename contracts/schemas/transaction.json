@@ -1,0 +1,195 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/transaction.json",
+  "title": "Transaction",
+  "description": "A payment transaction record",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the transaction"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant that processed this transaction"
+    },
+    "paymentLinkId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Associated payment link ID"
+    },
+    "checkoutSessionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Associated checkout session ID"
+    },
+    "reference": {
+      "type": "string",
+      "maxLength": 255,
+      "description": "External reference"
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Transaction amount in smallest currency unit"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "authorized", "captured", "failed", "cancelled", "refunded", "partially_refunded"],
+      "description": "Current transaction status"
+    },
+    "paymentMethod": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["card", "bank_transfer", "wallet"]
+        },
+        "details": {
+          "type": "object",
+          "properties": {
+            "last4": {
+              "type": "string",
+              "pattern": "^[0-9]{4}$",
+              "description": "Last 4 digits of card (for card payments)"
+            },
+            "brand": {
+              "type": "string",
+              "description": "Card brand (visa, mastercard, etc.)"
+            },
+            "country": {
+              "type": "string",
+              "pattern": "^[A-Z]{2}$",
+              "description": "Issuing country code"
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "customer": {
+      "type": "object",
+      "properties": {
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "name": {
+          "type": "string",
+          "maxLength": 255
+        },
+        "phone": {
+          "type": "string",
+          "maxLength": 20
+        }
+      },
+      "additionalProperties": false
+    },
+    "fraudScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Fraud risk score (0-100)"
+    },
+    "threeDsResult": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["authenticated", "not_authenticated", "attempted", "unavailable", "rejected"]
+        },
+        "version": {
+          "type": "string",
+          "enum": ["1.0", "2.0", "2.1", "2.2"]
+        }
+      },
+      "required": ["status"],
+      "additionalProperties": false
+    },
+    "fees": {
+      "type": "object",
+      "properties": {
+        "processing": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Processing fee in smallest currency unit"
+        },
+        "platform": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Platform fee in smallest currency unit"
+        }
+      },
+      "additionalProperties": false
+    },
+    "refunds": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/refund"
+      }
+    },
+    "pspTransactionId": {
+      "type": "string",
+      "description": "Payment service provider transaction ID"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the transaction was processed"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "merchantId", "amount", "currency", "status", "paymentMethod", "createdAt", "updatedAt"],
+  "additionalProperties": false,
+  "$defs": {
+    "refund": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "amount": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reason": {
+          "type": "string",
+          "maxLength": 500
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "succeeded", "failed"]
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "required": ["id", "amount", "status", "createdAt"],
+      "additionalProperties": false
+    }
+  }
+}

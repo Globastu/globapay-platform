@@ -1,0 +1,2006 @@
+openapi: 3.1.0
+info:
+  title: Globapay Platform API
+  description: Multi-tenant payments orchestration API with contract-first design
+  version: 0.1.0
+  contact:
+    name: Globapay Platform Team
+    url: https://globapay.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:3001
+    description: Development server
+  - url: https://api.globapay.com
+    description: Production server
+
+security:
+  - bearerAuth: []
+  - apiKey: []
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+    apiKey:
+      type: apiKey
+      in: header
+      name: X-API-Key
+
+  parameters:
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      description: Unique key for request idempotency
+      required: false
+      schema:
+        type: string
+        maxLength: 255
+    
+    Cursor:
+      name: cursor
+      in: query
+      description: Cursor for pagination
+      required: false
+      schema:
+        type: string
+    
+    Limit:
+      name: limit
+      in: query
+      description: Maximum number of items to return (1-100)
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    Forbidden:
+      description: Forbidden
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    NotFound:
+      description: Not Found
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    Conflict:
+      description: Conflict
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ProblemDetails'
+    
+    ValidationError:
+      description: Validation Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/ValidationProblemDetails'
+
+  schemas:
+    ProblemDetails:
+      type: object
+      properties:
+        type:
+          type: string
+          format: uri
+          description: Problem type identifier
+        title:
+          type: string
+          description: Human-readable problem summary
+        status:
+          type: integer
+          description: HTTP status code
+        detail:
+          type: string
+          description: Human-readable problem details
+        instance:
+          type: string
+          format: uri
+          description: Problem instance identifier
+      required: [type, title, status]
+
+    ValidationProblemDetails:
+      allOf:
+        - $ref: '#/components/schemas/ProblemDetails'
+        - type: object
+          properties:
+            errors:
+              type: object
+              additionalProperties:
+                type: array
+                items:
+                  type: string
+
+    PaginatedResponse:
+      type: object
+      properties:
+        data:
+          type: array
+          items: {}
+        hasMore:
+          type: boolean
+        nextCursor:
+          type: string
+          nullable: true
+      required: [data, hasMore, nextCursor]
+
+    # Entity Schemas
+    Organization:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 50
+        type:
+          type: string
+          enum: [platform, merchant]
+        status:
+          type: string
+          enum: [active, suspended, pending]
+        settings:
+          type: object
+          properties:
+            webhookUrl:
+              type: string
+              format: uri
+            timezone:
+              type: string
+            currency:
+              type: string
+              pattern: '^[A-Z]{3}$'
+          additionalProperties: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, name, slug, type, status, createdAt, updatedAt]
+
+    CreateOrganizationRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 50
+        type:
+          type: string
+          enum: [platform, merchant]
+        settings:
+          type: object
+          properties:
+            webhookUrl:
+              type: string
+              format: uri
+            timezone:
+              type: string
+            currency:
+              type: string
+              pattern: '^[A-Z]{3}$'
+          additionalProperties: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required: [name, slug, type]
+
+    Merchant:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        organizationId:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 50
+        status:
+          type: string
+          enum: [pending, active, suspended, rejected]
+        kybStatus:
+          type: string
+          enum: [not_started, pending, approved, rejected, expired]
+        businessInfo:
+          type: object
+          properties:
+            legalName:
+              type: string
+              minLength: 1
+              maxLength: 255
+            taxId:
+              type: string
+              minLength: 1
+              maxLength: 50
+            website:
+              type: string
+              format: uri
+            address:
+              type: object
+              properties:
+                line1:
+                  type: string
+                  maxLength: 255
+                line2:
+                  type: string
+                  maxLength: 255
+                city:
+                  type: string
+                  maxLength: 100
+                state:
+                  type: string
+                  maxLength: 100
+                postalCode:
+                  type: string
+                  maxLength: 20
+                country:
+                  type: string
+                  pattern: '^[A-Z]{2}$'
+              required: [line1, city, country]
+              additionalProperties: false
+          additionalProperties: false
+        paymentMethods:
+          type: array
+          items:
+            type: string
+            enum: [card, bank_transfer, wallet]
+        settings:
+          type: object
+          properties:
+            webhookUrl:
+              type: string
+              format: uri
+            returnUrl:
+              type: string
+              format: uri
+            cancelUrl:
+              type: string
+              format: uri
+          additionalProperties: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, organizationId, name, slug, status, kybStatus, createdAt, updatedAt]
+
+    CreateMerchantRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+        slug:
+          type: string
+          pattern: '^[a-z0-9][a-z0-9-]*[a-z0-9]$'
+          minLength: 3
+          maxLength: 50
+        businessInfo:
+          type: object
+          properties:
+            legalName:
+              type: string
+              minLength: 1
+              maxLength: 255
+            taxId:
+              type: string
+              minLength: 1
+              maxLength: 50
+            website:
+              type: string
+              format: uri
+            address:
+              type: object
+              properties:
+                line1:
+                  type: string
+                  maxLength: 255
+                line2:
+                  type: string
+                  maxLength: 255
+                city:
+                  type: string
+                  maxLength: 100
+                state:
+                  type: string
+                  maxLength: 100
+                postalCode:
+                  type: string
+                  maxLength: 20
+                country:
+                  type: string
+                  pattern: '^[A-Z]{2}$'
+              required: [line1, city, country]
+              additionalProperties: false
+          additionalProperties: false
+        paymentMethods:
+          type: array
+          items:
+            type: string
+            enum: [card, bank_transfer, wallet]
+        settings:
+          type: object
+          properties:
+            webhookUrl:
+              type: string
+              format: uri
+            returnUrl:
+              type: string
+              format: uri
+            cancelUrl:
+              type: string
+              format: uri
+          additionalProperties: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required: [name, slug]
+
+    UpdateMerchantStatusRequest:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [active, suspended, rejected]
+        reason:
+          type: string
+          maxLength: 500
+      required: [status]
+
+    PaymentLink:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        reference:
+          type: string
+          maxLength: 255
+        amount:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        description:
+          type: string
+          maxLength: 1000
+        customerEmail:
+          type: string
+          format: email
+        customerName:
+          type: string
+          maxLength: 255
+        status:
+          type: string
+          enum: [pending, completed, expired, voided]
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+        transactionId:
+          type: string
+          format: uuid
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, merchantId, amount, currency, description, status, url, expiresAt, createdAt, updatedAt]
+
+    CreatePaymentLinkRequest:
+      type: object
+      properties:
+        reference:
+          type: string
+          maxLength: 255
+        amount:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        description:
+          type: string
+          maxLength: 1000
+        customerEmail:
+          type: string
+          format: email
+        customerName:
+          type: string
+          maxLength: 255
+        expiresAt:
+          type: string
+          format: date-time
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required: [amount, currency, description]
+
+    CheckoutSession:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Checkout session identifier
+          example: "cs_abc123"
+        token:
+          type: string
+          description: Secure session token for checkout
+          example: "a1b2c3d4e5f6789012345678901234567890abcdef1234567890abcdef123456"
+        paymentLinkId:
+          type: string
+          format: uuid
+          nullable: true
+          description: Associated payment link ID if created from payment link
+        merchantId:
+          type: string
+          format: uuid
+          description: Merchant identifier
+        amount:
+          type: integer
+          minimum: 1
+          description: Payment amount in cents
+          example: 2500
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: Payment currency code
+          example: "USD"
+        description:
+          type: string
+          maxLength: 1000
+          description: Payment description
+          example: "Medical Consultation Payment"
+        customerEmail:
+          type: string
+          format: email
+          nullable: true
+          description: Customer email address
+          example: "patient@example.com"
+        customerName:
+          type: string
+          maxLength: 255
+          nullable: true
+          description: Customer full name
+          example: "John Doe"
+        status:
+          type: string
+          enum: [active, expired, completed, cancelled]
+          description: Current session status
+          example: "active"
+        checkoutUrl:
+          type: string
+          format: uri
+          description: Hosted checkout page URL
+          example: "https://checkout.globapay.com/session/a1b2c3d4..."
+        returnUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to redirect after successful payment
+        cancelUrl:
+          type: string
+          format: uri
+          nullable: true
+          description: URL to redirect after cancelled payment
+        require3DS:
+          type: boolean
+          description: Whether 3D Secure authentication is required
+          example: true
+        skipFraudCheck:
+          type: boolean
+          description: Whether to bypass fraud detection
+          example: false
+        fraudScore:
+          type: number
+          minimum: 0
+          maximum: 100
+          nullable: true
+          description: Fraud risk score (0-100)
+          example: 15.5
+        expiresAt:
+          type: string
+          format: date-time
+          description: Session expiration time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+          description: Session completion time
+        createdAt:
+          type: string
+          format: date-time
+          description: Session creation time
+        updatedAt:
+          type: string
+          format: date-time
+          description: Session last update time
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+          description: Custom metadata
+      required: [id, token, merchantId, amount, currency, description, status, checkoutUrl, require3DS, skipFraudCheck, expiresAt, createdAt, updatedAt]
+
+    CreateCheckoutSessionRequest:
+      type: object
+      properties:
+        paymentLinkId:
+          type: string
+          format: uuid
+          description: Payment link ID to create session from
+          example: "pl_abc123"
+        merchantId:
+          type: string
+          format: uuid
+          description: Merchant ID (required if not using paymentLinkId)
+        amount:
+          type: integer
+          minimum: 1
+          description: Payment amount in cents (required if not using paymentLinkId)
+          example: 2500
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+          description: Payment currency (required if not using paymentLinkId)
+          example: "USD"
+        description:
+          type: string
+          maxLength: 1000
+          description: Payment description (required if not using paymentLinkId)
+          example: "Medical Consultation Payment"
+        customerEmail:
+          type: string
+          format: email
+          description: Customer email address
+          example: "patient@example.com"
+        customerName:
+          type: string
+          maxLength: 255
+          description: Customer full name
+          example: "John Doe"
+        returnUrl:
+          type: string
+          format: uri
+          description: URL to redirect after successful payment
+          example: "https://example.com/success"
+        cancelUrl:
+          type: string
+          format: uri
+          description: URL to redirect after cancelled payment
+          example: "https://example.com/cancel"
+        require3DS:
+          type: boolean
+          description: Force 3D Secure authentication
+          example: true
+        skipFraudCheck:
+          type: boolean
+          description: Skip fraud detection checks
+          example: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          description: Custom metadata
+      anyOf:
+        - required: [paymentLinkId]
+        - required: [amount, currency, description]
+
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        paymentLinkId:
+          type: string
+          format: uuid
+          nullable: true
+        checkoutSessionId:
+          type: string
+          format: uuid
+          nullable: true
+        reference:
+          type: string
+          maxLength: 255
+          nullable: true
+        amount:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        status:
+          type: string
+          enum: [pending, authorized, captured, failed, cancelled, refunded, partially_refunded]
+        paymentMethod:
+          type: object
+          properties:
+            type:
+              type: string
+              enum: [card, bank_transfer, wallet]
+            details:
+              type: object
+              properties:
+                last4:
+                  type: string
+                  pattern: '^[0-9]{4}$'
+                brand:
+                  type: string
+                country:
+                  type: string
+                  pattern: '^[A-Z]{2}$'
+              additionalProperties: false
+          required: [type]
+          additionalProperties: false
+        customer:
+          type: object
+          properties:
+            email:
+              type: string
+              format: email
+            name:
+              type: string
+              maxLength: 255
+            phone:
+              type: string
+              maxLength: 20
+          additionalProperties: false
+        fraudScore:
+          type: number
+          minimum: 0
+          maximum: 100
+          nullable: true
+        threeDsResult:
+          type: object
+          properties:
+            status:
+              type: string
+              enum: [authenticated, not_authenticated, attempted, unavailable, rejected]
+            version:
+              type: string
+              enum: ['1.0', '2.0', '2.1', '2.2']
+          required: [status]
+          additionalProperties: false
+          nullable: true
+        fees:
+          type: object
+          properties:
+            processing:
+              type: integer
+              minimum: 0
+            platform:
+              type: integer
+              minimum: 0
+          additionalProperties: false
+          nullable: true
+        pspTransactionId:
+          type: string
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        processedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, merchantId, amount, currency, status, paymentMethod, createdAt, updatedAt]
+
+    RefundRequest:
+      type: object
+      properties:
+        amount:
+          type: integer
+          minimum: 1
+          description: Amount to refund in smallest currency unit
+        reason:
+          type: string
+          enum: [duplicate, fraudulent, requested_by_customer, other]
+        description:
+          type: string
+          maxLength: 500
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+      required: [amount, reason]
+
+    Refund:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        transactionId:
+          type: string
+          format: uuid
+        merchantId:
+          type: string
+          format: uuid
+        amount:
+          type: integer
+          minimum: 1
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        reason:
+          type: string
+          enum: [duplicate, fraudulent, requested_by_customer, other]
+        description:
+          type: string
+          maxLength: 500
+          nullable: true
+        status:
+          type: string
+          enum: [pending, succeeded, failed, cancelled]
+        pspRefundId:
+          type: string
+          nullable: true
+        initiatedBy:
+          type: object
+          properties:
+            userId:
+              type: string
+              format: uuid
+            type:
+              type: string
+              enum: [manual, automatic, chargeback]
+          required: [type]
+          additionalProperties: false
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        processedAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, transactionId, merchantId, amount, currency, reason, status, initiatedBy, createdAt, updatedAt]
+
+    AuthTokenRequest:
+      type: object
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 8
+        mfaToken:
+          type: string
+          description: Multi-factor authentication token if required
+      required: [email, password]
+
+    AuthTokenResponse:
+      type: object
+      properties:
+        accessToken:
+          type: string
+        refreshToken:
+          type: string
+        expiresIn:
+          type: integer
+          description: Token expiration time in seconds
+        tokenType:
+          type: string
+          enum: [Bearer]
+      required: [accessToken, refreshToken, expiresIn, tokenType]
+
+    KYBSubmissionRequest:
+      type: object
+      properties:
+        documents:
+          type: array
+          items:
+            type: object
+            properties:
+              type:
+                type: string
+                enum: [business_registration, tax_document, bank_statement, identity_document]
+              url:
+                type: string
+                format: uri
+              filename:
+                type: string
+            required: [type, url, filename]
+        businessInfo:
+          type: object
+          properties:
+            legalName:
+              type: string
+              minLength: 1
+              maxLength: 255
+            taxId:
+              type: string
+              minLength: 1
+              maxLength: 50
+            website:
+              type: string
+              format: uri
+            address:
+              type: object
+              properties:
+                line1:
+                  type: string
+                  maxLength: 255
+                line2:
+                  type: string
+                  maxLength: 255
+                city:
+                  type: string
+                  maxLength: 100
+                state:
+                  type: string
+                  maxLength: 100
+                postalCode:
+                  type: string
+                  maxLength: 20
+                country:
+                  type: string
+                  pattern: '^[A-Z]{2}$'
+              required: [line1, city, country]
+              additionalProperties: false
+          required: [legalName, taxId, address]
+          additionalProperties: false
+      required: [documents, businessInfo]
+
+    KYBStatusResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [not_started, pending, approved, rejected, expired]
+        submittedAt:
+          type: string
+          format: date-time
+          nullable: true
+        reviewedAt:
+          type: string
+          format: date-time
+          nullable: true
+        rejectionReasons:
+          type: array
+          items:
+            type: string
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+      required: [status]
+
+    WebhookIncomingRequest:
+      type: object
+      properties:
+        type:
+          type: string
+        data:
+          type: object
+        signature:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required: [type, data, signature, timestamp]
+
+    WebhookReplayRequest:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 500
+      required: [reason]
+
+    Report:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [transactions, refunds, settlements]
+        format:
+          type: string
+          enum: [csv, json]
+        filters:
+          type: object
+          properties:
+            dateFrom:
+              type: string
+              format: date
+            dateTo:
+              type: string
+              format: date
+            merchantIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+            status:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        downloadUrl:
+          type: string
+          format: uri
+          nullable: true
+        expiresAt:
+          type: string
+          format: date-time
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required: [id, type, format, filters, status, createdAt, updatedAt]
+
+    GenerateReportRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [transactions, refunds, settlements]
+        format:
+          type: string
+          enum: [csv, json]
+        filters:
+          type: object
+          properties:
+            dateFrom:
+              type: string
+              format: date
+            dateTo:
+              type: string
+              format: date
+            merchantIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+            status:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
+      required: [type, format, filters]
+
+    ScheduleReportRequest:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [transactions, refunds, settlements]
+        format:
+          type: string
+          enum: [csv, json]
+        schedule:
+          type: string
+          enum: [daily, weekly, monthly]
+        filters:
+          type: object
+          properties:
+            merchantIds:
+              type: array
+              items:
+                type: string
+                format: uuid
+            status:
+              type: array
+              items:
+                type: string
+          additionalProperties: false
+        recipients:
+          type: array
+          items:
+            type: string
+            format: email
+      required: [type, format, schedule, recipients]
+
+paths:
+  # Health Check
+  /health:
+    get:
+      summary: Health check
+      operationId: getHealth
+      security: []
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [ok]
+                  timestamp:
+                    type: string
+                    format: date-time
+                required: [status, timestamp]
+
+  # Authentication
+  /auth/token:
+    post:
+      summary: Authenticate and get access token
+      operationId: createAuthToken
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthTokenRequest'
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  # Platform Organizations
+  /platforms:
+    get:
+      summary: List platform organizations
+      operationId: listPlatforms
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+      responses:
+        '200':
+          description: Platform organizations retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Organization'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create a new platform organization
+      operationId: createPlatform
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              allOf:
+                - $ref: '#/components/schemas/CreateOrganizationRequest'
+                - type: object
+                  properties:
+                    type:
+                      type: string
+                      enum: [platform]
+      responses:
+        '201':
+          description: Platform organization created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Organization'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # Merchants
+  /merchants:
+    get:
+      summary: List merchants
+      operationId: listMerchants
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          description: Filter by merchant status
+          schema:
+            type: string
+            enum: [pending, active, suspended, rejected]
+        - name: kybStatus
+          in: query
+          description: Filter by KYB status
+          schema:
+            type: string
+            enum: [not_started, pending, approved, rejected, expired]
+      responses:
+        '200':
+          description: Merchants retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Merchant'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create a new merchant
+      operationId: createMerchant
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateMerchantRequest'
+      responses:
+        '201':
+          description: Merchant created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /merchants/{id}/status:
+    post:
+      summary: Update merchant status
+      operationId: updateMerchantStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateMerchantStatusRequest'
+      responses:
+        '200':
+          description: Merchant status updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Merchant'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # KYB
+  /merchants/{id}/kyb/submit:
+    post:
+      summary: Submit KYB documents for merchant
+      operationId: submitMerchantKYB
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KYBSubmissionRequest'
+      responses:
+        '200':
+          description: KYB submission accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYBStatusResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /merchants/{id}/kyb/status:
+    get:
+      summary: Get KYB status for merchant
+      operationId: getMerchantKYBStatus
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: KYB status retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KYBStatusResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Payment Links
+  /payment-links:
+    get:
+      summary: List payment links
+      operationId: listPaymentLinks
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          description: Filter by payment link status
+          schema:
+            type: string
+            enum: [pending, completed, expired, voided]
+        - name: merchantId
+          in: query
+          description: Filter by merchant ID
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Payment links retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/PaymentLink'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Create a new payment link
+      operationId: createPaymentLink
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreatePaymentLinkRequest'
+      responses:
+        '201':
+          description: Payment link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLink'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /payment-links/{id}/resend:
+    post:
+      summary: Resend payment link notification
+      operationId: resendPaymentLink
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Payment link notification sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                required: [message]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /payment-links/{id}/void:
+    post:
+      summary: Void a payment link
+      operationId: voidPaymentLink
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      responses:
+        '200':
+          description: Payment link voided
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentLink'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Checkout Sessions
+  /checkout/sessions:
+    post:
+      summary: Create a new checkout session
+      operationId: createCheckoutSession
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckoutSessionRequest'
+      responses:
+        '201':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSession'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /checkout/sessions/{token}:
+    get:
+      summary: Get checkout session by token
+      operationId: getCheckoutSession
+      security: [] # Public endpoint
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Session token
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+      responses:
+        '200':
+          description: Checkout session retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/CheckoutSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /checkout/sessions/{token}/complete:
+    post:
+      summary: Complete checkout session
+      operationId: completeCheckoutSession
+      description: Mark checkout session as completed (typically called by payment processor webhook)
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Session token
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                transactionId:
+                  type: string
+                  format: uuid
+                  description: Transaction ID from payment processor
+                fraudScore:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                  description: Fraud risk score
+              required: [transactionId]
+      responses:
+        '200':
+          description: Checkout session completed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        type: string
+                        enum: [completed]
+                      completedAt:
+                        type: string
+                        format: date-time
+                  message:
+                    type: string
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /checkout/sessions/{token}/cancel:
+    post:
+      summary: Cancel checkout session
+      operationId: cancelCheckoutSession
+      security: [] # Public endpoint - users can cancel their own sessions
+      parameters:
+        - name: token
+          in: path
+          required: true
+          description: Session token
+          schema:
+            type: string
+            minLength: 64
+            maxLength: 64
+      responses:
+        '200':
+          description: Checkout session cancelled
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      status:
+                        type: string
+                        enum: [cancelled]
+                  message:
+                    type: string
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Payment Links by Short Code (Public Endpoint)
+  /payment-links/code/{shortCode}:
+    get:
+      summary: Get payment link by short code
+      operationId: getPaymentLinkByCode
+      security: [] # Public endpoint
+      parameters:
+        - name: shortCode
+          in: path
+          required: true
+          description: Payment link short code
+          schema:
+            type: string
+            pattern: '^[A-Z0-9]{8}$'
+            example: "HEALTH01"
+      responses:
+        '200':
+          description: Payment link retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/PaymentLink'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Transactions
+  /transactions:
+    get:
+      summary: List transactions
+      operationId: listTransactions
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: status
+          in: query
+          description: Filter by transaction status
+          schema:
+            type: string
+            enum: [pending, authorized, captured, failed, cancelled, refunded, partially_refunded]
+        - name: merchantId
+          in: query
+          description: Filter by merchant ID
+          schema:
+            type: string
+            format: uuid
+        - name: dateFrom
+          in: query
+          description: Filter transactions from this date
+          schema:
+            type: string
+            format: date
+        - name: dateTo
+          in: query
+          description: Filter transactions to this date
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Transactions retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Transaction'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /transactions/{id}:
+    get:
+      summary: Get transaction details
+      operationId: getTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Transaction retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Transaction'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /transactions/{id}/refund:
+    post:
+      summary: Refund a transaction
+      operationId: refundTransaction
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundRequest'
+      responses:
+        '201':
+          description: Refund initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  # Incoming Webhooks
+  /webhooks/provider:
+    post:
+      summary: Receive webhook from payment service provider
+      operationId: receiveProviderWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookIncomingRequest'
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [processed]
+                required: [status]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /webhooks/fraud:
+    post:
+      summary: Receive webhook from fraud detection service
+      operationId: receiveFraudWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookIncomingRequest'
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [processed]
+                required: [status]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /webhooks/kyb:
+    post:
+      summary: Receive webhook from KYB verification service
+      operationId: receiveKYBWebhook
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookIncomingRequest'
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [processed]
+                required: [status]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  # Admin - Webhook Management
+  /webhooks/{id}/replay:
+    post:
+      summary: Replay a webhook event
+      operationId: replayWebhook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookReplayRequest'
+      responses:
+        '200':
+          description: Webhook replay initiated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    enum: [queued]
+                required: [status]
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  # Reports
+  /reports:
+    get:
+      summary: List reports
+      operationId: listReports
+      parameters:
+        - $ref: '#/components/parameters/Cursor'
+        - $ref: '#/components/parameters/Limit'
+        - name: type
+          in: query
+          description: Filter by report type
+          schema:
+            type: string
+            enum: [transactions, refunds, settlements]
+        - name: status
+          in: query
+          description: Filter by report status
+          schema:
+            type: string
+            enum: [pending, processing, completed, failed]
+      responses:
+        '200':
+          description: Reports retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/PaginatedResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Report'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    post:
+      summary: Generate a new report
+      operationId: generateReport
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GenerateReportRequest'
+      responses:
+        '201':
+          description: Report generation initiated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Report'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'
+
+  /reports/schedule:
+    post:
+      summary: Schedule recurring reports
+      operationId: scheduleReport
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ScheduleReportRequest'
+      responses:
+        '201':
+          description: Report schedule created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  status:
+                    type: string
+                    enum: [active]
+                required: [id, status]
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '422':
+          $ref: '#/components/responses/ValidationError'

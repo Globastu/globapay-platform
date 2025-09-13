@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/refund.json",
+  "title": "Refund",
+  "description": "A refund for a transaction",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the refund"
+    },
+    "transactionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Parent transaction ID"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant that processed the refund"
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Refund amount in smallest currency unit"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code"
+    },
+    "reason": {
+      "type": "string",
+      "enum": ["duplicate", "fraudulent", "requested_by_customer", "other"],
+      "description": "Reason for the refund"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 500,
+      "description": "Additional refund description"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "succeeded", "failed", "cancelled"],
+      "description": "Current refund status"
+    },
+    "pspRefundId": {
+      "type": "string",
+      "description": "Payment service provider refund ID"
+    },
+    "initiatedBy": {
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "format": "uuid",
+          "description": "User who initiated the refund"
+        },
+        "type": {
+          "type": "string",
+          "enum": ["manual", "automatic", "chargeback"],
+          "description": "How the refund was initiated"
+        }
+      },
+      "required": ["type"],
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "processedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the refund was processed"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "transactionId", "merchantId", "amount", "currency", "reason", "status", "initiatedBy", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

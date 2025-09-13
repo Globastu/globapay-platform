@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/payment-link.json",
+  "title": "Payment Link",
+  "description": "A payment link that can be shared with customers",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the payment link"
+    },
+    "merchantId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Merchant that owns this payment link"
+    },
+    "reference": {
+      "type": "string",
+      "maxLength": 255,
+      "description": "External reference for the payment"
+    },
+    "amount": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Amount in smallest currency unit (e.g., cents)"
+    },
+    "currency": {
+      "type": "string",
+      "pattern": "^[A-Z]{3}$",
+      "description": "ISO 4217 currency code"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 1000,
+      "description": "Payment description"
+    },
+    "customerEmail": {
+      "type": "string",
+      "format": "email",
+      "description": "Customer email address"
+    },
+    "customerName": {
+      "type": "string",
+      "maxLength": 255,
+      "description": "Customer name"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["pending", "completed", "expired", "voided"],
+      "description": "Current payment link status"
+    },
+    "url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Public URL for the payment link"
+    },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payment link expires"
+    },
+    "completedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "When the payment was completed"
+    },
+    "transactionId": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Associated transaction ID if completed"
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time"
+    }
+  },
+  "required": ["id", "merchantId", "amount", "currency", "description", "status", "url", "expiresAt", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}

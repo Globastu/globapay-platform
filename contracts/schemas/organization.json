@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://globapay.com/schemas/organization.json",
+  "title": "Organization",
+  "description": "A platform organization that can have multiple merchants",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Unique identifier for the organization"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 255,
+      "description": "Organization display name"
+    },
+    "slug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 50,
+      "description": "URL-safe identifier"
+    },
+    "type": {
+      "type": "string",
+      "enum": ["platform", "merchant"],
+      "description": "Organization type - platform can have sub-merchants, merchant is end entity"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "suspended", "pending"],
+      "description": "Current organization status"
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "webhookUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "URL for webhook notifications"
+        },
+        "timezone": {
+          "type": "string",
+          "description": "IANA timezone identifier"
+        },
+        "currency": {
+          "type": "string",
+          "pattern": "^[A-Z]{3}$",
+          "description": "ISO 4217 currency code"
+        }
+      },
+      "additionalProperties": false
+    },
+    "metadata": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "Custom key-value pairs"
+    },
+    "createdAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when organization was created"
+    },
+    "updatedAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp when organization was last updated"
+    }
+  },
+  "required": ["id", "name", "slug", "type", "status", "createdAt", "updatedAt"],
+  "additionalProperties": false
+}
