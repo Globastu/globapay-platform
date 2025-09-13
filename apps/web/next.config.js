@@ -1,9 +1,9 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  experimental: {
-    appDir: true,
+  transpilePackages: ['@globapay/ui', '@globapay/sdk'],
+  env: {
+    NEXT_PUBLIC_MOCK: process.env.NEXT_PUBLIC_MOCK || '1',
   },
-  transpilePackages: ['@globapay/ui'],
 };
 
 module.exports = nextConfig;
