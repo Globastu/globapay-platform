@@ -3,10 +3,6 @@
   "version": "0.1.0",
   "private": true,
   "description": "Multi-tenant payments orchestration platform",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
   "packageManager": "pnpm@8.15.0",
   "scripts": {
     "build": "turbo build",
