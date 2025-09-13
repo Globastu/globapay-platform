@@ -1,7 +1,6 @@
 {
-  "framework": "nextjs",
-  "installCommand": "pnpm install",
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "pnpm build --filter=@globapay/web",
   "outputDirectory": "apps/web/.next",
-  "rootDirectory": "apps/web"
+  "installCommand": "pnpm install"
 }
