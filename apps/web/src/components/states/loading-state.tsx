@@ -7,10 +7,10 @@ import { cn } from '@/lib/utils';
 
 interface LoadingStateProps {
   type?: 'spinner' | 'skeleton' | 'pulse';
-  title?: string;
-  description?: string;
+  title?: string | undefined;
+  description?: string | undefined;
   lines?: number;
-  className?: string;
+  className?: string | undefined;
 }
 
 export function LoadingState({

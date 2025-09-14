@@ -5,20 +5,20 @@ import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 
 interface EmptyStateProps {
-  icon?: React.ElementType;
+  icon?: React.ElementType | undefined;
   title: string;
-  description?: string;
+  description?: string | undefined;
   action?: {
     label: string;
     onClick: () => void;
     variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-  };
+  } | undefined;
   secondaryAction?: {
     label: string;
     onClick: () => void;
     variant?: 'default' | 'outline' | 'secondary' | 'ghost';
-  };
-  className?: string;
+  } | undefined;
+  className?: string | undefined;
 }
 
 export function EmptyState({

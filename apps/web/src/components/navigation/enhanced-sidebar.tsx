@@ -151,7 +151,8 @@ interface EnhancedSidebarProps {
 export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: EnhancedSidebarProps) {
   const { data: session } = useSession();
   const pathname = usePathname();
-  const { theme, setTheme } = useTheme();
+  const { theme: themeValue, setTheme } = useTheme();
+  const theme = themeValue || 'system';
 
   const toggleCollapsed = () => {
     onCollapsedChange?.(!collapsed);
@@ -164,7 +165,7 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
   const toggleTheme = () => {
     const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
     const currentIndex = themes.indexOf(theme);
-    const nextTheme = themes[(currentIndex + 1) % themes.length];
+    const nextTheme = themes[(currentIndex + 1) % themes.length] as 'light' | 'dark' | 'system';
     setTheme(nextTheme);
   };
 
@@ -195,6 +196,7 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
       case 'light': return Sun;
       case 'dark': return Moon;
       case 'system': return Monitor;
+      default: return Monitor;
     }
   };
 

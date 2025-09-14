@@ -105,7 +105,7 @@ export function generateGradient(seed: string): string {
     hash = hash & hash; // Convert to 32-bit integer
   }
   
-  return colors[Math.abs(hash) % colors.length];
+  return colors[Math.abs(hash) % colors.length] || 'from-blue-500 to-purple-600';
 }
 
 export function sleep(ms: number): Promise<void> {

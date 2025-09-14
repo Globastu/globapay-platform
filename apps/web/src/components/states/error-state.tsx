@@ -7,20 +7,20 @@ import { AlertTriangle, RefreshCw, Bug, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface ErrorStateProps {
-  type?: 'error' | 'warning' | 'network' | 'bug';
+  type?: 'error' | 'warning' | 'network' | 'bug' | undefined;
   title: string;
-  description?: string;
-  errorCode?: string;
+  description?: string | undefined;
+  errorCode?: string | undefined;
   action?: {
     label: string;
     onClick: () => void;
     loading?: boolean;
-  };
+  } | undefined;
   secondaryAction?: {
     label: string;
     onClick: () => void;
-  };
-  className?: string;
+  } | undefined;
+  className?: string | undefined;
 }
 
 const errorIcons = {

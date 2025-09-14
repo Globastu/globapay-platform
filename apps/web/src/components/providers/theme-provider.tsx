@@ -81,7 +81,17 @@ export function ThemeProvider({
 
   // Prevent flash of incorrect theme
   if (!mounted) {
-    return null;
+    return (
+      <ThemeContext.Provider
+        value={{
+          theme: defaultTheme,
+          setTheme: handleSetTheme,
+          resolvedTheme: 'light',
+        }}
+      >
+        {children}
+      </ThemeContext.Provider>
+    );
   }
 
   return (
