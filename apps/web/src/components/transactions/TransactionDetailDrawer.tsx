@@ -164,7 +164,7 @@ export function TransactionDetailDrawer({
     });
 
     // Globapay → Fraud Check
-    if (txn.fraudScore !== null) {
+    if (txn.fraudScore !== null && txn.fraudScore !== undefined) {
       routes.push({
         id: 'fraud-check',
         name: 'Fraud Detection',
