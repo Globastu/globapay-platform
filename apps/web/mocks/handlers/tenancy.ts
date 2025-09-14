@@ -645,7 +645,7 @@ export const tenancyHandlers = [
           reviewedAt: newKybStatus === 'approved' ? new Date().toISOString() : undefined,
         },
         updatedAt: new Date().toISOString(),
-      };
+      } as any;
 
       const submissionId = `kyb_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
