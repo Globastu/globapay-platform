@@ -2,393 +2,359 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MetricCard } from '@/components/charts/metric-card';
-import { AreaChartComponent } from '@/components/charts/area-chart';
-import { BarChartComponent } from '@/components/charts/bar-chart';
-import { LineChartComponent } from '@/components/charts/line-chart';
-import { PieChartComponent } from '@/components/charts/pie-chart';
 import { 
-  AlertTriangle, 
-  Clock, 
   DollarSign, 
   TrendingUp, 
-  AlertCircle,
-  CheckCircle,
-  RefreshCw,
+  AlertTriangle,
   CreditCard,
   Users,
-  Activity
+  Activity,
+  ArrowUpRight,
+  ArrowDownRight,
+  MoreHorizontal,
+  Gift
 } from 'lucide-react';
+import { AreaChartComponent } from '@/components/charts/area-chart';
+import { BarChartComponent } from '@/components/charts/bar-chart';
 
-interface ReconciliationAlert {
-  id: string;
-  type: 'orphaned_transaction' | 'webhook_delivery_lag' | 'missing_payment_link';
-  severity: 'low' | 'medium' | 'high';
+interface StatCardData {
   title: string;
-  description: string;
-  resourceId: string;
-  resourceType: string;
+  value: string;
+  change: string;
+  changeType: 'increase' | 'decrease';
+  icon: React.ElementType;
+}
+
+interface Transaction {
+  id: string;
+  merchantName: string;
+  amount: number;
+  currency: string;
+  status: 'completed' | 'pending' | 'failed';
   createdAt: string;
 }
 
-interface WebhookStats {
-  orphanedTransactions: number;
-  missingPaymentLinks: number;
-  webhookDelayAlerts: number;
-  totalIssues: number;
-  lastRunAt: string;
-  nextRunAt: string;
-}
-
-export default function HomePage(): JSX.Element {
-  const [alerts, setAlerts] = useState<ReconciliationAlert[]>([]);
-  const [webhookStats, setWebhookStats] = useState<WebhookStats | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  // Sample chart data
-  const revenueData = [
-    { month: 'Jan', revenue: 4000, transactions: 240 },
-    { month: 'Feb', revenue: 3000, transactions: 198 },
-    { month: 'Mar', revenue: 5000, transactions: 320 },
-    { month: 'Apr', revenue: 7000, transactions: 450 },
-    { month: 'May', revenue: 6000, transactions: 380 },
-    { month: 'Jun', revenue: 8000, transactions: 520 },
-  ];
-
-  const paymentMethodsData = [
-    { name: 'Credit Card', value: 45, color: 'hsl(var(--primary))' },
-    { name: 'Bank Transfer', value: 25, color: 'hsl(var(--success))' },
-    { name: 'Digital Wallet', value: 20, color: 'hsl(var(--info))' },
-    { name: 'Other', value: 10, color: 'hsl(var(--warning))' },
-  ];
-
-  const dailyTransactionsData = [
-    { day: 'Mon', successful: 120, failed: 5 },
-    { day: 'Tue', successful: 145, failed: 8 },
-    { day: 'Wed', successful: 168, failed: 3 },
-    { day: 'Thu', successful: 190, failed: 7 },
-    { day: 'Fri', successful: 205, failed: 4 },
-    { day: 'Sat', successful: 95, failed: 2 },
-    { day: 'Sun', successful: 78, failed: 1 },
-  ];
+export default function OverviewPage() {
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState<StatCardData[]>([]);
+  const [recentTransactions, setRecentTransactions] = useState<Transaction[]>([]);
 
   useEffect(() => {
-    loadDashboardData();
-  }, []);
-
-  const loadDashboardData = async () => {
-    setLoading(true);
-    try {
-      // In a real implementation, these would be API calls
-      // For now, we'll use mock data
-      
-      const mockAlerts: ReconciliationAlert[] = [
+    // Simulate loading data
+    setTimeout(() => {
+      setStats([
         {
-          id: 'alert_1',
-          type: 'webhook_delivery_lag',
-          severity: 'high',
-          title: 'Webhook Delivery Delayed',
-          description: 'PSP webhook payment.completed has failed 5 times',
-          resourceId: 'webhook_123',
-          resourceType: 'webhook',
+          title: 'Revenue Today',
+          value: '$12,426',
+          change: '+8.2%',
+          changeType: 'increase',
+          icon: DollarSign,
+        },
+        {
+          title: 'Volume This Month',
+          value: '2,847',
+          change: '+15.3%',
+          changeType: 'increase',
+          icon: TrendingUp,
+        },
+        {
+          title: 'Active Merchants',
+          value: '127',
+          change: '+2',
+          changeType: 'increase',
+          icon: Users,
+        },
+        {
+          title: 'Alerts',
+          value: '3',
+          change: '-1',
+          changeType: 'decrease',
+          icon: AlertTriangle,
+        },
+      ]);
+
+      setRecentTransactions([
+        {
+          id: 'txn_1234567890',
+          merchantName: 'Acme Corp',
+          amount: 299.99,
+          currency: 'USD',
+          status: 'completed',
           createdAt: new Date().toISOString(),
         },
         {
-          id: 'alert_2',
-          type: 'orphaned_transaction',
-          severity: 'medium',
-          title: 'Orphaned Transaction',
-          description: 'Transaction txn_abc123 has no matching payment link',
-          resourceId: 'txn_abc123',
-          resourceType: 'transaction',
+          id: 'txn_1234567891',
+          merchantName: 'Tech Solutions Ltd',
+          amount: 1299.00,
+          currency: 'USD',
+          status: 'completed',
+          createdAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'txn_1234567892',
+          merchantName: 'Digital Services Inc',
+          amount: 49.99,
+          currency: 'USD',
+          status: 'pending',
           createdAt: new Date(Date.now() - 15 * 60 * 1000).toISOString(),
         },
-      ];
+        {
+          id: 'txn_1234567893',
+          merchantName: 'E-commerce Store',
+          amount: 89.99,
+          currency: 'USD',
+          status: 'failed',
+          createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
+        },
+        {
+          id: 'txn_1234567894',
+          merchantName: 'Online Marketplace',
+          amount: 199.99,
+          currency: 'USD',
+          status: 'completed',
+          createdAt: new Date(Date.now() - 45 * 60 * 1000).toISOString(),
+        },
+      ]);
 
-      const mockStats: WebhookStats = {
-        orphanedTransactions: 2,
-        missingPaymentLinks: 1,
-        webhookDelayAlerts: 3,
-        totalIssues: 6,
-        lastRunAt: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        nextRunAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      };
-
-      setAlerts(mockAlerts);
-      setWebhookStats(mockStats);
-    } catch (error) {
-      console.error('Failed to load dashboard data:', error);
-    } finally {
       setLoading(false);
+    }, 1000);
+  }, []);
+
+  // Sample chart data
+  const revenueData = [
+    { date: '2024-01-01', revenue: 4000 },
+    { date: '2024-01-02', revenue: 3000 },
+    { date: '2024-01-03', revenue: 5000 },
+    { date: '2024-01-04', revenue: 7000 },
+    { date: '2024-01-05', revenue: 6000 },
+    { date: '2024-01-06', revenue: 8000 },
+    { date: '2024-01-07', revenue: 9000 },
+  ];
+
+  const volumeData = [
+    { date: '2024-01-01', volume: 120 },
+    { date: '2024-01-02', volume: 98 },
+    { date: '2024-01-03', volume: 156 },
+    { date: '2024-01-04', volume: 187 },
+    { date: '2024-01-05', volume: 134 },
+    { date: '2024-01-06', volume: 210 },
+    { date: '2024-01-07', volume: 243 },
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge variant="default" className="bg-green-100 text-green-800 hover:bg-green-100">Completed</Badge>;
+      case 'pending':
+        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'failed':
+        return <Badge variant="destructive">Failed</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
     }
   };
 
-  const getSeverityColor = (severity: string) => {
-    switch (severity) {
-      case 'high': return 'destructive';
-      case 'medium': return 'outline';
-      case 'low': return 'secondary';
-      default: return 'outline';
-    }
+  const formatCurrency = (amount: number, currency: string) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+    }).format(amount);
   };
 
-  const getSeverityIcon = (severity: string) => {
-    switch (severity) {
-      case 'high': return <AlertCircle className="h-4 w-4" />;
-      case 'medium': return <AlertTriangle className="h-4 w-4" />;
-      case 'low': return <Clock className="h-4 w-4" />;
-      default: return <AlertTriangle className="h-4 w-4" />;
-    }
+  const formatTime = (dateString: string) => {
+    return new Date(dateString).toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
   };
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Overview</h1>
+        </div>
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {[...Array(4)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                <div className="h-8 bg-gray-200 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/4"></div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Overview</h1>
-        <p className="text-muted-foreground">
-          Welcome to your Globapay dashboard. Monitor transactions, manage payments, and track your business metrics.
-        </p>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Overview</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Welcome to your Globapay dashboard
+          </p>
+        </div>
+        <Button variant="outline" size="sm">
+          <Activity className="w-4 h-4 mr-2" />
+          View Reports
+        </Button>
       </div>
 
-      {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <MetricCard
-          title="Total Revenue"
-          value="$24,350"
-          change={{ value: 12, type: 'increase', timeframe: 'from last month' }}
-          icon={DollarSign}
-          variant="success"
-        />
-        
-        <MetricCard
-          title="Transactions"
-          value={1247}
-          change={{ value: 8, type: 'increase', timeframe: 'from last week' }}
-          icon={CreditCard}
-          variant="info"
-        />
-        
-        <MetricCard
-          title="Success Rate"
-          value="98.2%"
-          change={{ value: 0.3, type: 'increase', timeframe: 'from yesterday' }}
-          icon={CheckCircle}
-          variant="success"
-        />
-        
-        <MetricCard
-          title="Active Users"
-          value={342}
-          change={{ value: 5, type: 'increase', timeframe: 'from last week' }}
-          icon={Users}
-          variant="default"
-        />
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat, index) => {
+          const Icon = stat.icon;
+          return (
+            <Card key={index} className="hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                      {stat.title}
+                    </p>
+                    <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                      {stat.value}
+                    </p>
+                    <div className="flex items-center mt-1">
+                      {stat.changeType === 'increase' ? (
+                        <ArrowUpRight className="w-4 h-4 text-green-500" />
+                      ) : (
+                        <ArrowDownRight className="w-4 h-4 text-red-500" />
+                      )}
+                      <span className={`text-sm font-medium ${
+                        stat.changeType === 'increase' 
+                          ? 'text-green-600 dark:text-green-400' 
+                          : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {stat.change}
+                      </span>
+                      <span className="text-sm text-gray-500 dark:text-gray-400 ml-1">
+                        vs last period
+                      </span>
+                    </div>
+                  </div>
+                  <div className="p-3 bg-primary/10 rounded-2xl">
+                    <Icon className="w-6 h-6 text-primary" />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Charts & Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Revenue Trend */}
-        <Card variant="elevated">
+      {/* Charts */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <Card>
           <CardHeader>
             <CardTitle>Revenue Trend</CardTitle>
           </CardHeader>
           <CardContent>
             <AreaChartComponent
               data={revenueData}
-              xDataKey="month"
+              xDataKey="date"
               yDataKey="revenue"
-              color="hsl(var(--success))"
-              height={250}
+              color="hsl(173, 100%, 36%)"
+              height={300}
             />
           </CardContent>
         </Card>
 
-        {/* Payment Methods Distribution */}
-        <Card variant="elevated">
+        <Card>
           <CardHeader>
-            <CardTitle>Payment Methods</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <PieChartComponent
-              data={paymentMethodsData}
-              height={250}
-              innerRadius={60}
-              outerRadius={100}
-            />
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Transaction Analytics */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Daily Transactions */}
-        <Card variant="elevated">
-          <CardHeader>
-            <CardTitle>Daily Transactions</CardTitle>
+            <CardTitle>Transaction Volume</CardTitle>
           </CardHeader>
           <CardContent>
             <BarChartComponent
-              data={dailyTransactionsData}
-              xDataKey="day"
-              yDataKey="successful"
-              color="hsl(var(--primary))"
-              height={250}
-            />
-          </CardContent>
-        </Card>
-
-        {/* Success vs Failed Trend */}
-        <Card variant="elevated">
-          <CardHeader>
-            <CardTitle>Transaction Success Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <LineChartComponent
-              data={dailyTransactionsData}
-              xDataKey="day"
-              lines={[
-                { dataKey: 'successful', color: 'hsl(var(--success))', name: 'Successful' },
-                { dataKey: 'failed', color: 'hsl(var(--error))', name: 'Failed' }
-              ]}
-              height={250}
+              data={volumeData}
+              xDataKey="date"
+              yDataKey="volume"
+              color="hsl(158, 64%, 52%)"
+              height={300}
             />
           </CardContent>
         </Card>
       </div>
 
-      {/* System Monitoring & Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Reconciliation Status */}
-        <Card variant="elevated">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              Reconciliation Status
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={loadDashboardData}
-                disabled={loading}
-              >
-                {loading ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <RefreshCw className="h-4 w-4" />
-                )}
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {webhookStats ? (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Orphaned Transactions</span>
-                  <Badge variant={webhookStats.orphanedTransactions > 0 ? "error" : "success-soft"}>
-                    {webhookStats.orphanedTransactions}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Missing Payment Links</span>
-                  <Badge variant={webhookStats.missingPaymentLinks > 0 ? "error" : "success-soft"}>
-                    {webhookStats.missingPaymentLinks}
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Webhook Delivery Delays</span>
-                  <Badge variant={webhookStats.webhookDelayAlerts > 0 ? "error" : "success-soft"}>
-                    {webhookStats.webhookDelayAlerts}
-                  </Badge>
-                </div>
-                <div className="pt-2 border-t">
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Last Check:</span>
-                    <span>{new Date(webhookStats.lastRunAt).toLocaleTimeString()}</span>
-                  </div>
-                  <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Next Check:</span>
-                    <span>{new Date(webhookStats.nextRunAt).toLocaleTimeString()}</span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-4">
-                Loading reconciliation data...
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Alerts */}
-        <Card variant="elevated">
-          <CardHeader>
-            <CardTitle>Recent System Alerts</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {alerts.length > 0 ? (
-              <div className="space-y-3">
-                {alerts.map(alert => (
-                  <Alert key={alert.id} className="p-3">
-                    <div className="flex items-start gap-3">
-                      {getSeverityIcon(alert.severity)}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="font-medium text-sm">{alert.title}</span>
-                          <Badge variant={getSeverityColor(alert.severity)}>
-                            {alert.severity}
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground line-clamp-2">
-                          {alert.description}
-                        </p>
-                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
-                          <Clock className="h-3 w-3" />
-                          {new Date(alert.createdAt).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </Alert>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center text-muted-foreground py-8">
-                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-success" />
-                <p>No system alerts</p>
-                <p className="text-sm">All systems operating normally</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Quick Actions */}
-      <Card variant="elevated">
-        <CardHeader>
-          <CardTitle>Quick Actions</CardTitle>
+      {/* Recent Transactions */}
+      <Card>
+        <CardHeader className="flex flex-row items-center justify-between">
+          <CardTitle>Recent Transactions</CardTitle>
+          <Button variant="ghost" size="sm">
+            View all
+          </Button>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
-              <DollarSign className="h-6 w-6" />
-              <span className="font-medium">Create Payment Link</span>
-              <span className="text-sm text-muted-foreground">Generate a new payment request</span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
-              <TrendingUp className="h-6 w-6" />
-              <span className="font-medium">View Transactions</span>
-              <span className="text-sm text-muted-foreground">Monitor payment activity</span>
-            </Button>
-            
-            <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
-              <AlertTriangle className="h-6 w-6" />
-              <span className="font-medium">System Alerts</span>
-              <span className="text-sm text-muted-foreground">Review all system issues</span>
-            </Button>
+          <div className="space-y-4">
+            {recentTransactions.map((transaction) => (
+              <div
+                key={transaction.id}
+                className="flex items-center justify-between p-4 rounded-2xl border border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="p-2 bg-gray-100 dark:bg-gray-800 rounded-xl">
+                    <CreditCard className="w-4 h-4 text-gray-600 dark:text-gray-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {transaction.merchantName}
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {transaction.id} • {formatTime(transaction.createdAt)}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <div className="text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {formatCurrency(transaction.amount, transaction.currency)}
+                    </p>
+                    {getStatusBadge(transaction.status)}
+                  </div>
+                  <Button variant="ghost" size="sm">
+                    <MoreHorizontal className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
+
+      {/* GlobaGift Section - only show if enabled */}
+      {process.env.NEXT_PUBLIC_GLOBAGIFT_ENABLED === '1' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <Gift className="w-5 h-5 mr-2" />
+              Gift Card Summary
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">47</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Cards Sold</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">$2,350</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Total Value</p>
+              </div>
+              <div className="text-center">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">89%</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">Redemption Rate</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
