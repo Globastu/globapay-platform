@@ -53,10 +53,8 @@ export function StubCheckout({
         setError('Payment session has expired');
         onPaymentFailed?.({
           success: false,
-          error: {
-            code: 'SESSION_EXPIRED',
-            message: 'Payment session has expired',
-          },
+          errorCode: 'SESSION_EXPIRED',
+          errorMessage: 'Payment session has expired',
         });
       }
     }, expiryTime - now);
