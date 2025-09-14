@@ -1,12 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { useSession } from 'next-auth/react';
-import { Search, Bell, Settings, ChevronDown } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import { useTheme } from '@/components/providers/theme-provider';
+import { 
+  Search, 
+  Bell, 
+  Menu,
+  User,
+  Settings, 
+  LogOut,
+  Sun,
+  Moon,
+  Monitor,
+  ChevronLeft,
+  Database
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { getInitials } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,106 +31,156 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export function DashboardTopbar() {
-  const { data: session } = useSession();
-  const [environment, setEnvironment] = useState<'sandbox' | 'production'>('sandbox');
+interface DashboardTopbarProps {
+  onMobileMenuToggle?: () => void;
+  sidebarCollapsed?: boolean;
+  onSidebarToggle?: () => void;
+}
 
-  const toggleEnvironment = () => {
-    setEnvironment(current => current === 'sandbox' ? 'production' : 'sandbox');
+export function DashboardTopbar({ 
+  onMobileMenuToggle, 
+  sidebarCollapsed, 
+  onSidebarToggle 
+}: DashboardTopbarProps) {
+  const { data: session } = useSession();
+  const { theme: themeValue, setTheme } = useTheme();
+  const theme = themeValue || 'system';
+  const [searchQuery, setSearchQuery] = useState('');
+
+  const handleSignOut = () => {
+    signOut({ callbackUrl: '/auth/signin' });
   };
 
+  const toggleTheme = () => {
+    const themes: Array<'light' | 'dark' | 'system'> = ['light', 'dark', 'system'];
+    const currentIndex = themes.indexOf(theme);
+    const nextTheme = themes[(currentIndex + 1) % themes.length] as 'light' | 'dark' | 'system';
+    setTheme(nextTheme);
+  };
+
+  const getThemeIcon = () => {
+    switch (theme) {
+      case 'light': return Sun;
+      case 'dark': return Moon;
+      case 'system': return Monitor;
+      default: return Monitor;
+    }
+  };
+
+  const ThemeIcon = getThemeIcon();
+
   return (
-    <header className="h-16 bg-card/50 backdrop-blur-sm border-b border-border flex items-center justify-between px-6">
-      {/* Search */}
-      <div className="flex items-center flex-1 max-w-md">
-        <div className="relative w-full">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search transactions, merchants, or resources..."
-            className="pl-10 bg-background/50 border-border focus:bg-background"
-          />
-        </div>
-      </div>
-
-      {/* Right side actions */}
-      <div className="flex items-center space-x-4">
-        {/* Environment Switcher */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className={cn(
-                'flex items-center space-x-2 transition-colors',
-                environment === 'sandbox' 
-                  ? 'border-info/30 bg-info/10 text-info hover:bg-info/20' 
-                  : 'border-success/30 bg-success/10 text-success hover:bg-success/20'
-              )}
-            >
-              <div className={cn(
-                'h-2 w-2 rounded-full',
-                environment === 'sandbox' ? 'bg-info' : 'bg-success'
-              )} />
-              <span className="text-sm font-medium capitalize">
-                {environment}
-              </span>
-              <ChevronDown className="h-3 w-3" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuLabel>Environment</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => setEnvironment('sandbox')}>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-info" />
-                <span>Sandbox</span>
-                {environment === 'sandbox' && (
-                  <Badge variant="secondary" size="sm" className="ml-auto">
-                    Active
-                  </Badge>
-                )}
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setEnvironment('production')}>
-              <div className="flex items-center space-x-2">
-                <div className="h-2 w-2 rounded-full bg-success" />
-                <span>Production</span>
-                {environment === 'production' && (
-                  <Badge variant="secondary" size="sm" className="ml-auto">
-                    Active
-                  </Badge>
-                )}
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-
-        {/* Notifications */}
-        <Button variant="ghost" size="sm" className="relative">
-          <Bell className="h-4 w-4" />
-          <Badge 
-            variant="destructive" 
+    <header className="sticky top-0 z-30 flex h-16 items-center border-b bg-card/80 backdrop-blur-sm px-6">
+      <div className="flex w-full items-center justify-between">
+        {/* Left side - Mobile menu + Sidebar toggle + Search */}
+        <div className="flex items-center gap-4">
+          {/* Mobile menu toggle */}
+          <Button
+            variant="ghost"
             size="sm"
-            className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            className="lg:hidden"
+            onClick={onMobileMenuToggle}
           >
-            3
-          </Badge>
-        </Button>
+            <Menu className="h-5 w-5" />
+          </Button>
 
-        {/* Settings */}
-        <Button variant="ghost" size="sm">
-          <Settings className="h-4 w-4" />
-        </Button>
+          {/* Desktop sidebar toggle */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="hidden lg:flex"
+            onClick={onSidebarToggle}
+          >
+            <ChevronLeft className={cn(
+              'h-5 w-5 transition-transform',
+              sidebarCollapsed && 'rotate-180'
+            )} />
+          </Button>
 
-        {/* User Profile Quick Access */}
-        {session?.user && (
-          <div className="flex items-center space-x-3 pl-4 border-l border-border">
-            <div className="text-right hidden md:block">
-              <p className="text-sm font-medium leading-none">{session.user.name}</p>
-              <p className="text-xs text-muted-foreground">{session.user.role}</p>
-            </div>
+          {/* Global Search */}
+          <div className="relative hidden sm:flex">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search transactions, merchants..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-64 pl-10 bg-background"
+            />
           </div>
-        )}
+        </div>
+
+        {/* Right side - Environment + Notifications + Theme + Profile */}
+        <div className="flex items-center gap-3">
+          {/* Environment Badge */}
+          <Badge variant="info-soft" className="hidden md:flex">
+            <Database className="h-3 w-3 mr-1" />
+            Sandbox
+          </Badge>
+
+          {/* Mobile search */}
+          <Button variant="ghost" size="sm" className="sm:hidden">
+            <Search className="h-5 w-5" />
+          </Button>
+
+          {/* Notifications */}
+          <Button variant="ghost" size="sm" className="relative">
+            <Bell className="h-5 w-5" />
+            <Badge 
+              variant="destructive" 
+              className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 flex items-center justify-center text-xs"
+            >
+              3
+            </Badge>
+          </Button>
+
+          {/* Theme toggle */}
+          <Button variant="ghost" size="sm" onClick={toggleTheme}>
+            <ThemeIcon className="h-5 w-5" />
+          </Button>
+
+          {/* User Profile */}
+          {session?.user && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-9 w-9 rounded-full">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
+                    <AvatarFallback className="text-sm">
+                      {getInitials(session.user.name || 'User')}
+                    </AvatarFallback>
+                  </Avatar>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end" forceMount>
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      {session.user.email}
+                    </p>
+                    <p className="text-xs leading-none text-muted-foreground">
+                      Role: {(session.user as any).role || 'User'}
+                    </p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>
+                  <User className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Settings className="mr-2 h-4 w-4" />
+                  <span>Settings</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                  <LogOut className="mr-2 h-4 w-4" />
+                  <span>Log out</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
+        </div>
       </div>
     </header>
   );

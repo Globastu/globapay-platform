@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { getServerSession } from 'next-auth/next';
 import { Providers } from '../components/providers';
+import { DashboardShell } from '../components/layouts/dashboard-shell';
 import { ThemeScript } from '../components/theme-script';
 import { authOptions } from '../lib/auth';
 import './globals.css';
@@ -27,7 +28,9 @@ export default async function RootLayout({
       </head>
       <body className={inter.className}>
         <Providers session={session}>
-          {children}
+          <DashboardShell>
+            {children}
+          </DashboardShell>
         </Providers>
       </body>
     </html>

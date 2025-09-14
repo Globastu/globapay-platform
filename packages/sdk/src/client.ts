@@ -8,9 +8,9 @@ export interface GlobapayClientConfig {
   headers?: Record<string, string>;
 }
 
-export type GlobapayClient = ReturnType<typeof createGlobapayClient>;
+export type GlobapayClient = ReturnType<typeof createClient<paths>>;
 
-export function createGlobapayClient(config: GlobapayClientConfig = {}) {
+export function createGlobapayClient(config: GlobapayClientConfig = {}): ReturnType<typeof createClient<paths>> {
   const {
     baseUrl = 'http://localhost:3001',
     apiKey,

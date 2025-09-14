@@ -24,6 +24,7 @@ import {
   Monitor,
   User,
   MenuIcon,
+  Gift,
 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
@@ -56,10 +57,11 @@ const navigation: NavigationItem[] = [
     icon: LayoutDashboard,
   },
   {
-    name: 'Payment Links',
-    href: '/payment-links',
-    icon: CreditCard,
-    permissions: ['PAYMENT_LINKS_READ'],
+    name: 'Merchants',
+    href: '/merchants',
+    icon: Building2,
+    permissions: ['MERCHANTS_READ'],
+    roles: ['PlatformAdmin', 'Admin'],
   },
   {
     name: 'Transactions',
@@ -67,6 +69,19 @@ const navigation: NavigationItem[] = [
     icon: Receipt,
     permissions: ['TRANSACTIONS_READ'],
     badge: '12',
+  },
+  {
+    name: 'Payment Links',
+    href: '/payment-links',
+    icon: CreditCard,
+    permissions: ['PAYMENT_LINKS_READ'],
+  },
+  {
+    name: 'Gift Cards',
+    href: '/gift-cards',
+    icon: Gift,
+    permissions: ['GIFT_CARDS_READ'],
+    badge: 'New',
   },
   {
     name: 'Reports',
@@ -80,40 +95,6 @@ const navigation: NavigationItem[] = [
     icon: Shield,
     roles: ['PlatformAdmin', 'Admin', 'MerchantAdmin', 'Analyst'],
     badge: '3',
-  },
-  {
-    name: 'Merchants',
-    href: '/merchants',
-    icon: Building2,
-    permissions: ['MERCHANTS_READ'],
-    roles: ['PlatformAdmin', 'Admin'],
-  },
-  {
-    name: 'Users',
-    href: '/users',
-    icon: Users,
-    permissions: ['USERS_READ'],
-    roles: ['PlatformAdmin', 'Admin', 'MerchantAdmin'],
-  },
-  {
-    name: 'API Keys',
-    href: '/api-keys',
-    icon: Key,
-    permissions: ['API_KEYS_READ'],
-  },
-  {
-    name: 'Webhooks',
-    href: '/webhooks',
-    icon: Webhook,
-    permissions: ['WEBHOOKS_READ'],
-    roles: ['PlatformAdmin', 'Admin', 'MerchantAdmin'],
-  },
-  {
-    name: 'Audit Logs',
-    href: '/audit-logs',
-    icon: FileText,
-    permissions: ['AUDIT_LOGS_READ'],
-    roles: ['PlatformAdmin', 'Admin', 'MerchantAdmin', 'Analyst'],
   },
   {
     name: 'Settings',
