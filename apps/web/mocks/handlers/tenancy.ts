@@ -547,11 +547,12 @@ export const tenancyHandlers = [
       const body = await request.json() as any;
       const { status, kybStatus, reviewNotes } = body;
 
+      const currentMerchant = merchantsStore[merchantIndex];
       merchantsStore[merchantIndex] = {
-        ...merchantsStore[merchantIndex],
+        ...currentMerchant,
         status,
-        kybStatus: kybStatus || merchantsStore[merchantIndex].kybStatus,
-        approvedAt: status === 'active' ? new Date().toISOString() : merchantsStore[merchantIndex].approvedAt,
+        kybStatus: kybStatus || currentMerchant?.kybStatus,
+        approvedAt: status === 'active' ? new Date().toISOString() : currentMerchant?.approvedAt,
         updatedAt: new Date().toISOString(),
       } as any;
 
