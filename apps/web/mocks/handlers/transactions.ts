@@ -235,7 +235,7 @@ export const transactionHandlers = [
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       // Update refund status to completed (in real world, this would be async)
-      refund.status = 'completed';
+      (refund as any).status = 'completed';
 
       // Add refund to transaction
       if (!transactionsStore[transactionIndex].refunds) {
