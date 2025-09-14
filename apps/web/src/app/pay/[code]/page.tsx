@@ -69,8 +69,8 @@ export default function PaymentPage() {
           amount: mockPaymentLink.amount,
           currency: mockPaymentLink.currency,
           description: mockPaymentLink.description,
-          customerEmail: mockPaymentLink.customerEmail,
-          customerName: mockPaymentLink.customerName,
+          ...(mockPaymentLink.customerEmail && { customerEmail: mockPaymentLink.customerEmail }),
+          ...(mockPaymentLink.customerName && { customerName: mockPaymentLink.customerName }),
           status: 'active',
           checkoutUrl: `https://checkout.globapay.com/session/${Math.random().toString(36).substr(2, 64)}`,
           require3DS: mockPaymentLink.amount > 3000, // 3DS for amounts > $30
