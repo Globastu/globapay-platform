@@ -1,6 +1,6 @@
 module.exports = {
   extends: [
-    '@globapay/config/eslint-preset',
+    '../../packages/config/eslint-preset.js',
     'next/core-web-vitals',
   ],
   rules: {

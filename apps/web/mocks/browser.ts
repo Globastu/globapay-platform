@@ -14,7 +14,7 @@ export const enableMocking = async () => {
   }
 
   // Only start MSW in browser environment
-  if (typeof globalThis.window === 'undefined') {
+  if (typeof document === 'undefined') {
     return;
   }
 
