@@ -43,7 +43,9 @@ export default function NewPaymentLinkPage(): JSX.Element {
 
   const handleMetadataChange = (index: number, field: 'key' | 'value', value: string) => {
     const newFields = [...metadataFields];
-    newFields[index][field] = value;
+    if (newFields[index]) {
+      newFields[index][field] = value;
+    }
     setMetadataFields(newFields);
     
     // Update formData metadata
