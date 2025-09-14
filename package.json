@@ -38,6 +38,7 @@
     "pnpm": ">=8.0.0"
   },
   "dependencies": {
+    "@heroicons/react": "^2.2.0",
     "@radix-ui/react-progress": "^1.1.7"
   }
 }
