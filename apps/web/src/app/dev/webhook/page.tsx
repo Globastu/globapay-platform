@@ -429,7 +429,7 @@ export default function WebhookInjectorPage() {
                           </code>
                           {entry.response && (
                             <Badge 
-                              variant={entry.response.status >= 200 && entry.response.status < 300 ? "success" : "destructive"}
+                              variant={entry.response.status >= 200 && entry.response.status < 300 ? "default" : "destructive"}
                             >
                               {entry.response.status}
                             </Badge>
