@@ -482,6 +482,11 @@ export const tenancyHandlers = [
         description: body.description,
         address,
         kybStatus: 'not_started',
+        kybData: {
+          businessType: 'corporation',
+          documents: [],
+          owners: [],
+        },
         status: 'pending',
         settings: {
           currency: settings?.currency || 'USD',
