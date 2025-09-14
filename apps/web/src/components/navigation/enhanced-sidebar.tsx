@@ -293,7 +293,7 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-10 w-10 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                    <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
                     <AvatarFallback className="text-xs">
                       {getInitials(session.user.name || 'User')}
                     </AvatarFallback>
@@ -324,7 +324,7 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={session.user.image} alt={session.user.name || ''} />
+                <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
                 <AvatarFallback>
                   {getInitials(session.user.name || 'User')}
                 </AvatarFallback>

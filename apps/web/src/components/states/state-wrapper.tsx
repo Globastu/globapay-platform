@@ -47,8 +47,8 @@ export function StateWrapper({
     return (
       <LoadingState
         type={loadingType}
-        title={loadingTitle}
-        description={loadingDescription}
+        title={loadingTitle || undefined}
+        description={loadingDescription || undefined}
         className={className}
       />
     );
@@ -58,10 +58,10 @@ export function StateWrapper({
   if (error) {
     return (
       <ErrorState
-        type={error.type}
+        type={error.type || 'error'}
         title={error.title}
-        description={error.description}
-        errorCode={error.errorCode}
+        description={error.description || undefined}
+        errorCode={error.errorCode || undefined}
         action={error.onRetry ? {
           label: 'Try Again',
           onClick: error.onRetry,
@@ -79,9 +79,9 @@ export function StateWrapper({
   if (empty && (!data || data.length === 0)) {
     return (
       <EmptyState
-        icon={empty.icon}
+        icon={empty.icon || undefined}
         title={empty.title}
-        description={empty.description}
+        description={empty.description || undefined}
         action={empty.onAction ? {
           label: empty.actionLabel || 'Get Started',
           onClick: empty.onAction,

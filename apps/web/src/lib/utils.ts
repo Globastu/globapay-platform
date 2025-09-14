@@ -60,7 +60,8 @@ export function formatRelativeTime(date: string | Date): string {
   }
 }
 
-export function getInitials(name: string): string {
+export function getInitials(name: string | undefined): string {
+  if (!name) return 'U';
   return name
     .split(' ')
     .map(word => word.charAt(0))
