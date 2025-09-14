@@ -552,7 +552,7 @@ export function TransactionDetailDrawer({
                                   {route.duration}ms
                                 </span>
                               )}
-                              <Badge variant={route.status === 'success' ? 'success' : 
+                              <Badge variant={route.status === 'success' ? 'default' : 
                                             route.status === 'failed' ? 'destructive' : 'outline'}>
                                 {route.status}
                               </Badge>
