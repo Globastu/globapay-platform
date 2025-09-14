@@ -153,7 +153,7 @@ export function StubCheckout({
 
       if (!result.success) {
         setStep('error');
-        setError(result.error?.message || 'Payment failed');
+        setError(result.errorMessage || 'Payment failed');
         onPaymentFailed?.(result);
         setProcessing(false);
         return;
