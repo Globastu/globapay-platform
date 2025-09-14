@@ -498,7 +498,7 @@ export const tenancyHandlers = [
         updatedAt: new Date().toISOString(),
       };
 
-      merchantsStore.push(newMerchant);
+      merchantsStore.push(newMerchant as any);
 
       return HttpResponse.json(
         {
