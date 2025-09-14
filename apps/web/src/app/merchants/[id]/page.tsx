@@ -216,7 +216,7 @@ export default function MerchantDetailPage() {
         <Alert>
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            Merchant not found or you don't have permission to view it.
+            Merchant not found or you don&apos;t have permission to view it.
           </AlertDescription>
         </Alert>
       </div>
