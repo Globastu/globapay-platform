@@ -1,6 +1,6 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "buildCommand": "pnpm --filter @globapay/web run build && ls -la apps/web/ && cp -r apps/web/.next .next",
+  "buildCommand": "pnpm --filter @globapay/web run build && ls -la && ls -la apps/ && cp -r apps/web/.next .next",
   "outputDirectory": ".next",
   "installCommand": "pnpm install --no-frozen-lockfile"
 }
