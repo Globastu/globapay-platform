@@ -1,4 +1,5 @@
 import { http, HttpResponse } from 'msw';
+import type { Merchant } from '@/types/tenancy';
 
 // Mock data
 const mockPlatforms = [
