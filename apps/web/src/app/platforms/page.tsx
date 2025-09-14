@@ -93,7 +93,7 @@ export default function PlatformsPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'success';
+        return 'default';
       case 'inactive':
         return 'secondary';
       case 'suspended':
