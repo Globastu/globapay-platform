@@ -203,7 +203,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 // Helper to get authenticated API client
 export function getAuthenticatedClient(accessToken: string) {
   return createGlobapayClient({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL,
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://api.globapay.com',
     accessToken,
   });
 }
