@@ -87,7 +87,7 @@ export default function WebhookInjectorPage() {
       }
 
       // Merge with custom headers
-      const allHeaders = {
+      const allHeaders: Record<string, any> = {
         'Content-Type': 'application/json',
         ...parsedHeaders,
         ...customHeaders,
