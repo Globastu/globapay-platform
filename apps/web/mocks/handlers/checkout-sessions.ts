@@ -236,7 +236,9 @@ export const checkoutSessionHandlers = [
     // Update session as completed
     const completedAt = new Date().toISOString();
     session.status = 'completed';
-    session.fraudScore = body.fraudScore;
+    if (body.fraudScore !== undefined) {
+      session.fraudScore = body.fraudScore;
+    }
     session.completedAt = completedAt;
     session.updatedAt = completedAt;
 
