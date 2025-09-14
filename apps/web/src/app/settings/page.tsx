@@ -16,7 +16,7 @@ import {
 interface SettingSection {
   title: string;
   description: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<any>;
   href: string;
   permissions?: string[];
   roles?: string[];
