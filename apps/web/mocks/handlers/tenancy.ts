@@ -553,7 +553,7 @@ export const tenancyHandlers = [
         kybStatus: kybStatus || merchantsStore[merchantIndex].kybStatus,
         approvedAt: status === 'active' ? new Date().toISOString() : merchantsStore[merchantIndex].approvedAt,
         updatedAt: new Date().toISOString(),
-      };
+      } as any;
 
       if (reviewNotes && merchantsStore[merchantIndex].kybData) {
         merchantsStore[merchantIndex].kybData!.reviewNotes = reviewNotes;
