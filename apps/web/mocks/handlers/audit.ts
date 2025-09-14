@@ -132,12 +132,16 @@ const generateAuditStats = () => {
   );
 
   const eventsByAction = recentLogs.reduce((acc, log) => {
-    acc[log.action] = (acc[log.action] || 0) + 1;
+    if (log.action) {
+      acc[log.action] = (acc[log.action] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
   const eventsByOutcome = recentLogs.reduce((acc, log) => {
-    acc[log.outcome] = (acc[log.outcome] || 0) + 1;
+    if (log.outcome) {
+      acc[log.outcome] = (acc[log.outcome] || 0) + 1;
+    }
     return acc;
   }, {} as Record<string, number>);
 
