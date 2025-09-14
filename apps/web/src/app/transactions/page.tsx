@@ -273,7 +273,7 @@ export default function TransactionsPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'completed':
-        return 'success';
+        return 'default';
       case 'failed':
       case 'cancelled':
         return 'destructive';
