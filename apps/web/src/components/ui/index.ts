@@ -12,3 +12,4 @@ export * from './badge';
 export * from './tabs';
 export * from './table';
 export * from './sheet';
+export * from './separator';
