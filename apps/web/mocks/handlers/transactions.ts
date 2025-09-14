@@ -193,7 +193,7 @@ export const transactionHandlers = [
       }
 
       // Calculate total refunded amount
-      const totalRefunded = transaction.refunds?.reduce((sum, refund) => 
+      const totalRefunded = transaction.refunds?.reduce((sum: number, refund) => 
         refund.status === 'completed' ? sum + refund.amount : sum, 0
       ) || 0;
 
