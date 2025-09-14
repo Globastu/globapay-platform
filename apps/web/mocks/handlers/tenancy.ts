@@ -556,16 +556,17 @@ export const tenancyHandlers = [
         updatedAt: new Date().toISOString(),
       } as any;
 
-      if (reviewNotes && merchantsStore[merchantIndex].kybData) {
+      if (reviewNotes && merchantsStore[merchantIndex]?.kybData) {
         merchantsStore[merchantIndex].kybData!.reviewNotes = reviewNotes;
       }
 
+      const updatedMerchant = merchantsStore[merchantIndex];
       return HttpResponse.json({
         data: {
-          id: merchantsStore[merchantIndex].id,
-          status: merchantsStore[merchantIndex].status,
-          kybStatus: merchantsStore[merchantIndex].kybStatus,
-          updatedAt: merchantsStore[merchantIndex].updatedAt,
+          id: updatedMerchant?.id,
+          status: updatedMerchant?.status,
+          kybStatus: updatedMerchant?.kybStatus,
+          updatedAt: updatedMerchant?.updatedAt,
         },
         message: 'Merchant status updated successfully',
       });
