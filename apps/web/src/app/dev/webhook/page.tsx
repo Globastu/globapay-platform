@@ -114,7 +114,13 @@ export default function WebhookInjectorPage() {
       const webhookResponse = {
         status: fetchResponse.status,
         statusText: fetchResponse.statusText,
-        headers: Object.fromEntries(Array.from(fetchResponse.headers.entries()) as [string, string][]),
+        headers: (() => {
+          const headers: Record<string, string> = {};
+          fetchResponse.headers.forEach((value, key) => {
+            headers[key] = value;
+          });
+          return headers;
+        })(),
         body: responseBody,
         duration: endTime - startTime,
         timestamp: new Date(),
