@@ -8,7 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { DataTable } from '@/components/ui/data-table';
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { StateWrapper } from '@/components/states/state-wrapper';
 import { 
   Gift,
@@ -148,97 +155,6 @@ export default function GiftCardsPage() {
     }).format(amount);
   };
 
-  const columns = [
-    {
-      accessorKey: 'code',
-      header: 'Gift Card Code',
-      cell: ({ row }: any) => {
-        const code = row.getValue('code');
-        return (
-          <div className="font-mono text-sm">
-            {code}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'amount',
-      header: 'Amount',
-      cell: ({ row }: any) => {
-        const amount = row.getValue('amount');
-        const currency = row.original.currency;
-        return (
-          <div className="font-medium">
-            {formatCurrency(amount, currency)}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: 'status',
-      header: 'Status',
-      cell: ({ row }: any) => {
-        const status = row.getValue('status');
-        return (
-          <Badge variant={getStatusColor(status) as any}>
-            {status.charAt(0).toUpperCase() + status.slice(1)}
-          </Badge>
-        );
-      },
-    },
-    {
-      accessorKey: 'recipientEmail',
-      header: 'Recipient',
-      cell: ({ row }: any) => {
-        const email = row.getValue('recipientEmail');
-        return <div className="text-sm text-muted-foreground">{email}</div>;
-      },
-    },
-    {
-      accessorKey: 'purchaserEmail',
-      header: 'Purchaser',
-      cell: ({ row }: any) => {
-        const email = row.getValue('purchaserEmail');
-        return <div className="text-sm text-muted-foreground">{email}</div>;
-      },
-    },
-    {
-      accessorKey: 'createdAt',
-      header: 'Created',
-      cell: ({ row }: any) => {
-        const date = row.getValue('createdAt');
-        return (
-          <div className="text-sm text-muted-foreground">
-            {new Date(date).toLocaleDateString()}
-          </div>
-        );
-      },
-    },
-    {
-      id: 'actions',
-      cell: ({ row }: any) => {
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
-                <MoreHorizontal className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Eye className="mr-2 h-4 w-4" />
-                View Details
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Download className="mr-2 h-4 w-4" />
-                Export
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
-  ];
 
   const filteredGiftCards = giftCards.filter(card => {
     const matchesSearch = card.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -266,13 +182,12 @@ export default function GiftCardsPage() {
       {/* Stats Cards */}
       <StateWrapper
         loading={loading}
-        error={null}
-        isEmpty={!stats}
-        emptyProps={{
+        empty={{
           title: 'No Gift Card Stats',
           description: 'Gift card statistics will appear here once you have data.',
           icon: Gift
         }}
+        data={stats ? [stats] : []}
       >
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -339,7 +254,7 @@ export default function GiftCardsPage() {
       <Alert>
         <Gift className="h-4 w-4" />
         <AlertDescription>
-          <strong>GlobaGift Integration:</strong> This module integrates with GlobaGift's digital gift card platform. 
+          <strong>GlobaGift Integration:</strong> This module integrates with GlobaGift&apos;s digital gift card platform. 
           Configure your GlobaGift API credentials in Settings to enable full functionality.
         </AlertDescription>
       </Alert>
@@ -387,15 +302,79 @@ export default function GiftCardsPage() {
 
           <StateWrapper
             loading={loading}
-            error={null}
-            isEmpty={filteredGiftCards.length === 0}
-            emptyProps={{
+            empty={{
               title: 'No Gift Cards Found',
               description: 'No gift cards match your current search criteria.',
               icon: Gift
             }}
+            data={filteredGiftCards}
           >
-            <DataTable columns={columns} data={filteredGiftCards} />
+            <div className="rounded-md border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Gift Card Code</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Recipient</TableHead>
+                    <TableHead>Purchaser</TableHead>
+                    <TableHead>Created</TableHead>
+                    <TableHead></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredGiftCards.map((card) => (
+                    <TableRow key={card.id}>
+                      <TableCell>
+                        <div className="font-mono text-sm">
+                          {card.code}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="font-medium">
+                          {formatCurrency(card.amount, card.currency)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusColor(card.status) as any}>
+                          {card.status.charAt(0).toUpperCase() + card.status.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">{card.recipientEmail}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">{card.purchaserEmail}</div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-muted-foreground">
+                          {new Date(card.createdAt).toLocaleDateString()}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" className="h-8 w-8 p-0">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Eye className="mr-2 h-4 w-4" />
+                              View Details
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Download className="mr-2 h-4 w-4" />
+                              Export
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </StateWrapper>
         </CardContent>
       </Card>
