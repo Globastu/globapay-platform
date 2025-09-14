@@ -158,13 +158,13 @@ jobs:
           REDIS_URL: redis://localhost:6379
           JWT_SECRET: test-jwt-secret-key-for-ci-only
           NODE_ENV: test
-        run: pnpm -w test --coverage
+        run: pnpm --filter @globapay/api test:coverage
 
       - name: 📊 Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          directory: ./coverage
+          directory: ./apps/api/coverage
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
@@ -172,7 +172,7 @@ jobs:
       - name: 📊 Coverage threshold check
         run: |
           # Check if coverage meets minimum thresholds
-          pnpm -w test:coverage-check
+          pnpm --filter @globapay/api test:coverage-check
 
   build:
     name: 🏗 Build

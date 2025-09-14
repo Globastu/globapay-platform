@@ -4,6 +4,10 @@
   "private": true,
   "description": "Shared configuration for Globapay Platform",
   "main": "index.js",
+  "exports": {
+    "./eslint-preset": "./eslint-preset.js",
+    "./tsconfig.json": "./tsconfig.json"
+  },
   "files": [
     "eslint-preset.js",
     "tsconfig.json"
