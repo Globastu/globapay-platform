@@ -367,7 +367,7 @@ export default function WebhookInjectorPage() {
                     <AlertCircle className="h-5 w-5 text-red-500" />
                   )}
                   <Badge 
-                    variant={response.status >= 200 && response.status < 300 ? "success" : "destructive"}
+                    variant={response.status >= 200 && response.status < 300 ? "default" : "destructive"}
                   >
                     {response.status} {response.statusText}
                   </Badge>
