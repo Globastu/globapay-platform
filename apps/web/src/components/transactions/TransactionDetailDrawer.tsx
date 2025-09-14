@@ -498,7 +498,7 @@ export function TransactionDetailDrawer({
                         <div className="flex-1 pb-4">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-medium">{event.event}</h4>
-                            <Badge variant={event.status === 'completed' ? 'success' : 
+                            <Badge variant={event.status === 'completed' ? 'default' : 
                                           event.status === 'failed' ? 'destructive' : 'outline'}>
                               {event.status}
                             </Badge>
