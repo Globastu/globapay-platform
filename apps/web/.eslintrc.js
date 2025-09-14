@@ -1,6 +1,5 @@
 module.exports = {
   extends: [
-    '../../packages/config/eslint-preset.js',
     'next/core-web-vitals',
   ],
   rules: {
