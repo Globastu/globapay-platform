@@ -415,7 +415,7 @@ export default function FraudPage() {
                 <div className="p-4 bg-green-50 rounded-lg">
                   <p className="text-2xl font-bold text-green-600">
                     {stats.scoreDistribution
-                      .filter((item) => parseInt(item.scoreRange.split('-')[0]) < 30)
+                      .filter((item) => parseInt(item.scoreRange.split('-')[0] || '0') < 30)
                       .reduce((sum, item) => sum + item.count, 0)}
                   </p>
                   <p className="text-sm text-green-700">Low Risk (0-29)</p>
@@ -425,7 +425,7 @@ export default function FraudPage() {
                   <p className="text-2xl font-bold text-yellow-600">
                     {stats.scoreDistribution
                       .filter((item) => {
-                        const start = parseInt(item.scoreRange.split('-')[0]);
+                        const start = parseInt(item.scoreRange.split('-')[0] || '0');
                         return start >= 30 && start <= 69;
                       })
                       .reduce((sum, item) => sum + item.count, 0)}
@@ -436,7 +436,7 @@ export default function FraudPage() {
                 <div className="p-4 bg-red-50 rounded-lg">
                   <p className="text-2xl font-bold text-red-600">
                     {stats.scoreDistribution
-                      .filter((item) => parseInt(item.scoreRange.split('-')[0]) >= 70)
+                      .filter((item) => parseInt(item.scoreRange.split('-')[0] || '0') >= 70)
                       .reduce((sum, item) => sum + item.count, 0)}
                   </p>
                   <p className="text-sm text-red-700">High Risk (70+)</p>
