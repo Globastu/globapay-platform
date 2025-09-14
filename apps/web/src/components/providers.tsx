@@ -2,6 +2,7 @@
 
 import { useEffect, useState, ReactNode } from 'react';
 import { AuthProvider } from '../providers/auth-provider';
+import { ThemeProvider } from './providers/theme-provider';
 import { DemoDataBadge } from './ui/demo-data-badge';
 import { MockLatencyControl } from '../lib/mock-latency-control';
 import type { Session } from 'next-auth';
@@ -49,9 +50,11 @@ export function Providers({ children, session }: ProvidersProps): JSX.Element {
   }
 
   return (
-    <AuthProvider session={session}>
-      {children}
-      <DemoDataBadge />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider session={session}>
+        {children}
+        <DemoDataBadge />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }

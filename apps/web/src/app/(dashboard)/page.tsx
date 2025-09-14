@@ -5,6 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { MetricCard } from '@/components/charts/metric-card';
+import { AreaChartComponent } from '@/components/charts/area-chart';
+import { BarChartComponent } from '@/components/charts/bar-chart';
+import { LineChartComponent } from '@/components/charts/line-chart';
+import { PieChartComponent } from '@/components/charts/pie-chart';
 import { 
   AlertTriangle, 
   Clock, 
@@ -12,7 +17,10 @@ import {
   TrendingUp, 
   AlertCircle,
   CheckCircle,
-  RefreshCw
+  RefreshCw,
+  CreditCard,
+  Users,
+  Activity
 } from 'lucide-react';
 
 interface ReconciliationAlert {
@@ -39,6 +47,33 @@ export default function HomePage(): JSX.Element {
   const [alerts, setAlerts] = useState<ReconciliationAlert[]>([]);
   const [webhookStats, setWebhookStats] = useState<WebhookStats | null>(null);
   const [loading, setLoading] = useState(false);
+
+  // Sample chart data
+  const revenueData = [
+    { month: 'Jan', revenue: 4000, transactions: 240 },
+    { month: 'Feb', revenue: 3000, transactions: 198 },
+    { month: 'Mar', revenue: 5000, transactions: 320 },
+    { month: 'Apr', revenue: 7000, transactions: 450 },
+    { month: 'May', revenue: 6000, transactions: 380 },
+    { month: 'Jun', revenue: 8000, transactions: 520 },
+  ];
+
+  const paymentMethodsData = [
+    { name: 'Credit Card', value: 45, color: 'hsl(var(--primary))' },
+    { name: 'Bank Transfer', value: 25, color: 'hsl(var(--success))' },
+    { name: 'Digital Wallet', value: 20, color: 'hsl(var(--info))' },
+    { name: 'Other', value: 10, color: 'hsl(var(--warning))' },
+  ];
+
+  const dailyTransactionsData = [
+    { day: 'Mon', successful: 120, failed: 5 },
+    { day: 'Tue', successful: 145, failed: 8 },
+    { day: 'Wed', successful: 168, failed: 3 },
+    { day: 'Thu', successful: 190, failed: 7 },
+    { day: 'Fri', successful: 205, failed: 4 },
+    { day: 'Sat', successful: 95, failed: 2 },
+    { day: 'Sun', successful: 78, failed: 1 },
+  ];
 
   useEffect(() => {
     loadDashboardData();
@@ -110,75 +145,124 @@ export default function HomePage(): JSX.Element {
   };
 
   return (
-    <main className="container mx-auto px-4 py-8">
-      <div className="mb-8">
-        <h1 className="text-4xl font-bold mb-2">Globapay Platform</h1>
-        <p className="text-lg text-gray-600">
-          Multi-tenant payments orchestration dashboard
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Overview</h1>
+        <p className="text-muted-foreground">
+          Welcome to your Globapay dashboard. Monitor transactions, manage payments, and track your business metrics.
         </p>
       </div>
 
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+      {/* Key Metrics */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <MetricCard
+          title="Total Revenue"
+          value="$24,350"
+          change={{ value: 12, type: 'increase', timeframe: 'from last month' }}
+          icon={DollarSign}
+          variant="success"
+        />
+        
+        <MetricCard
+          title="Transactions"
+          value={1247}
+          change={{ value: 8, type: 'increase', timeframe: 'from last week' }}
+          icon={CreditCard}
+          variant="info"
+        />
+        
+        <MetricCard
+          title="Success Rate"
+          value="98.2%"
+          change={{ value: 0.3, type: 'increase', timeframe: 'from yesterday' }}
+          icon={CheckCircle}
+          variant="success"
+        />
+        
+        <MetricCard
+          title="Active Users"
+          value={342}
+          change={{ value: 5, type: 'increase', timeframe: 'from last week' }}
+          icon={Users}
+          variant="default"
+        />
+      </div>
+
+      {/* Charts & Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Revenue Trend */}
+        <Card variant="elevated">
+          <CardHeader>
+            <CardTitle>Revenue Trend</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">$24,350</div>
-            <p className="text-xs text-muted-foreground">
-              +12% from last month
-            </p>
+            <AreaChartComponent
+              data={revenueData}
+              xDataKey="month"
+              yDataKey="revenue"
+              color="hsl(var(--success))"
+              height={250}
+            />
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+
+        {/* Payment Methods Distribution */}
+        <Card variant="elevated">
+          <CardHeader>
+            <CardTitle>Payment Methods</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">1,247</div>
-            <p className="text-xs text-muted-foreground">
-              +8% from last week
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">98.2%</div>
-            <p className="text-xs text-muted-foreground">
-              +0.3% from yesterday
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Issues</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {webhookStats?.totalIssues || 0}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Reconciliation alerts
-            </p>
+            <PieChartComponent
+              data={paymentMethodsData}
+              height={250}
+              innerRadius={60}
+              outerRadius={100}
+            />
           </CardContent>
         </Card>
       </div>
 
-      {/* Webhook & Reconciliation Alerts */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+      {/* Transaction Analytics */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Daily Transactions */}
+        <Card variant="elevated">
+          <CardHeader>
+            <CardTitle>Daily Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <BarChartComponent
+              data={dailyTransactionsData}
+              xDataKey="day"
+              yDataKey="successful"
+              color="hsl(var(--primary))"
+              height={250}
+            />
+          </CardContent>
+        </Card>
+
+        {/* Success vs Failed Trend */}
+        <Card variant="elevated">
+          <CardHeader>
+            <CardTitle>Transaction Success Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <LineChartComponent
+              data={dailyTransactionsData}
+              xDataKey="day"
+              lines={[
+                { dataKey: 'successful', color: 'hsl(var(--success))', name: 'Successful' },
+                { dataKey: 'failed', color: 'hsl(var(--error))', name: 'Failed' }
+              ]}
+              height={250}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* System Monitoring & Alerts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Reconciliation Status */}
-        <Card>
+        <Card variant="elevated">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               Reconciliation Status
@@ -200,36 +284,36 @@ export default function HomePage(): JSX.Element {
             {webhookStats ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Orphaned Transactions</span>
-                  <Badge variant={webhookStats.orphanedTransactions > 0 ? "destructive" : "secondary"}>
+                  <span className="text-sm text-muted-foreground">Orphaned Transactions</span>
+                  <Badge variant={webhookStats.orphanedTransactions > 0 ? "error" : "success-soft"}>
                     {webhookStats.orphanedTransactions}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Missing Payment Links</span>
-                  <Badge variant={webhookStats.missingPaymentLinks > 0 ? "destructive" : "secondary"}>
+                  <span className="text-sm text-muted-foreground">Missing Payment Links</span>
+                  <Badge variant={webhookStats.missingPaymentLinks > 0 ? "error" : "success-soft"}>
                     {webhookStats.missingPaymentLinks}
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-gray-600">Webhook Delivery Delays</span>
-                  <Badge variant={webhookStats.webhookDelayAlerts > 0 ? "destructive" : "secondary"}>
+                  <span className="text-sm text-muted-foreground">Webhook Delivery Delays</span>
+                  <Badge variant={webhookStats.webhookDelayAlerts > 0 ? "error" : "success-soft"}>
                     {webhookStats.webhookDelayAlerts}
                   </Badge>
                 </div>
                 <div className="pt-2 border-t">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Last Check:</span>
+                    <span className="text-muted-foreground">Last Check:</span>
                     <span>{new Date(webhookStats.lastRunAt).toLocaleTimeString()}</span>
                   </div>
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-gray-600">Next Check:</span>
+                    <span className="text-muted-foreground">Next Check:</span>
                     <span>{new Date(webhookStats.nextRunAt).toLocaleTimeString()}</span>
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center text-gray-500 py-4">
+              <div className="text-center text-muted-foreground py-4">
                 Loading reconciliation data...
               </div>
             )}
@@ -237,7 +321,7 @@ export default function HomePage(): JSX.Element {
         </Card>
 
         {/* Recent Alerts */}
-        <Card>
+        <Card variant="elevated">
           <CardHeader>
             <CardTitle>Recent System Alerts</CardTitle>
           </CardHeader>
@@ -255,10 +339,10 @@ export default function HomePage(): JSX.Element {
                             {alert.severity}
                           </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 line-clamp-2">
+                        <p className="text-sm text-muted-foreground line-clamp-2">
                           {alert.description}
                         </p>
-                        <div className="flex items-center gap-2 mt-2 text-xs text-gray-500">
+                        <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
                           {new Date(alert.createdAt).toLocaleString()}
                         </div>
@@ -268,8 +352,8 @@ export default function HomePage(): JSX.Element {
                 ))}
               </div>
             ) : (
-              <div className="text-center text-gray-500 py-8">
-                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-500" />
+              <div className="text-center text-muted-foreground py-8">
+                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-success" />
                 <p>No system alerts</p>
                 <p className="text-sm">All systems operating normally</p>
               </div>
@@ -279,7 +363,7 @@ export default function HomePage(): JSX.Element {
       </div>
 
       {/* Quick Actions */}
-      <Card>
+      <Card variant="elevated">
         <CardHeader>
           <CardTitle>Quick Actions</CardTitle>
         </CardHeader>
@@ -288,23 +372,23 @@ export default function HomePage(): JSX.Element {
             <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
               <DollarSign className="h-6 w-6" />
               <span className="font-medium">Create Payment Link</span>
-              <span className="text-sm text-gray-500">Generate a new payment request</span>
+              <span className="text-sm text-muted-foreground">Generate a new payment request</span>
             </Button>
             
             <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
               <TrendingUp className="h-6 w-6" />
               <span className="font-medium">View Transactions</span>
-              <span className="text-sm text-gray-500">Monitor payment activity</span>
+              <span className="text-sm text-muted-foreground">Monitor payment activity</span>
             </Button>
             
             <Button variant="outline" className="h-auto p-4 flex flex-col gap-2">
               <AlertTriangle className="h-6 w-6" />
               <span className="font-medium">System Alerts</span>
-              <span className="text-sm text-gray-500">Review all system issues</span>
+              <span className="text-sm text-muted-foreground">Review all system issues</span>
             </Button>
           </div>
         </CardContent>
       </Card>
-    </main>
+    </div>
   );
 }
