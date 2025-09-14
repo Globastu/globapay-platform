@@ -1,5 +1,6 @@
 import { http, HttpResponse } from 'msw';
 import { mockTransactions, createMockRefund, findTransactionById } from '../fixtures/transactions';
+import type { Refund } from '@/types/api';
 
 // In-memory storage for demo purposes
 let transactionsStore = [...mockTransactions];
@@ -193,7 +194,7 @@ export const transactionHandlers = [
       }
 
       // Calculate total refunded amount
-      const totalRefunded = transaction.refunds?.reduce((sum: number, refund) => 
+      const totalRefunded = transaction.refunds?.reduce((sum: number, refund: Refund) => 
         refund.status === 'completed' ? sum + refund.amount : sum, 0
       ) || 0;
 
