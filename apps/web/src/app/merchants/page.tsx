@@ -126,9 +126,9 @@ export default function MerchantsPage() {
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'active':
-        return 'success';
+        return 'default';
       case 'pending':
-        return 'warning';
+        return 'outline';
       case 'rejected':
       case 'suspended':
         return 'destructive';
@@ -140,10 +140,10 @@ export default function MerchantsPage() {
   const getKybStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'approved':
-        return 'success';
+        return 'default';
       case 'under_review':
       case 'documents_submitted':
-        return 'warning';
+        return 'secondary';
       case 'rejected':
         return 'destructive';
       case 'additional_info_required':
