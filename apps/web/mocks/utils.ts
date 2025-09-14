@@ -27,3 +27,9 @@ export function formatDate(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   return d.toISOString();
 }
+
+export function mockLatency(): Promise<void> {
+  // Add realistic API latency for development
+  const latency = randomBetween(100, 500);
+  return delay(latency);
+}
