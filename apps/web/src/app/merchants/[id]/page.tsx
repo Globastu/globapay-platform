@@ -131,8 +131,8 @@ export default function MerchantDetailPage() {
       totalSteps: steps.length,
       steps,
       completionPercentage: Math.round((completedSteps / steps.length) * 100),
-      estimatedTimeRemaining,
-      blockers: blockers.length > 0 ? blockers : undefined,
+      ...(estimatedTimeRemaining && { estimatedTimeRemaining }),
+      ...(blockers.length > 0 && { blockers }),
     };
   };
 
