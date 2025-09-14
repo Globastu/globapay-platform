@@ -367,7 +367,7 @@ export function TransactionDetailDrawer({
                       <div className="flex items-center gap-2">
                         {transaction.require3DS ? (
                           <>
-                            <Badge variant={transaction.threeDSStatus === '3ds_authenticated' ? 'success' : 'destructive'}>
+                            <Badge variant={transaction.threeDSStatus === '3ds_authenticated' ? 'default' : 'destructive'}>
                               {transaction.threeDSStatus === '3ds_authenticated' ? 'Authenticated' : 
                                transaction.threeDSStatus === '3ds_failed' ? 'Failed' : 'Pending'}
                             </Badge>
