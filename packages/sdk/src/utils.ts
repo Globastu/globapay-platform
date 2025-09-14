@@ -11,7 +11,9 @@ export class GlobapayError extends Error {
     this.name = 'GlobapayError';
     this.status = problem.status;
     this.type = problem.type;
-    this.instance = problem.instance;
+    if (problem.instance !== undefined) {
+      this.instance = problem.instance;
+    }
   }
 }
 
