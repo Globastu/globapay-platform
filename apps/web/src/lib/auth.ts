@@ -75,7 +75,7 @@ export const authOptions: NextAuthOptions = {
 
         try {
           // Use the SDK to authenticate with our API
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/token`, {
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/token`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -169,7 +169,7 @@ export const authOptions: NextAuthOptions = {
  */
 async function refreshAccessToken(token: JWT): Promise<JWT> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/refresh`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -203,7 +203,7 @@ async function refreshAccessToken(token: JWT): Promise<JWT> {
 // Helper to get authenticated API client
 export function getAuthenticatedClient(accessToken: string) {
   return createGlobapayClient({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'https://api.globapay.com',
+    baseUrl: process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.globapay.com',
     accessToken,
   });
 }
