@@ -303,7 +303,7 @@ export function TransactionDetailDrawer({
                   <p className="text-sm font-medium text-gray-500 mb-2">Status</p>
                   <div className="flex items-center gap-2">
                     {getStatusIcon(transaction.status)}
-                    <Badge variant={transaction.status === 'completed' ? 'success' : 
+                    <Badge variant={transaction.status === 'completed' ? 'default' : 
                                   transaction.status === 'failed' ? 'destructive' : 'outline'}>
                       {transaction.status.replace('_', ' ')}
                     </Badge>
