@@ -431,7 +431,7 @@ export function TransactionDetailDrawer({
                             <div key={refund.id} className="p-2 bg-gray-50 rounded text-sm">
                               <div className="flex justify-between items-center">
                                 <span>{formatAmount(refund.amount, refund.currency)}</span>
-                                <Badge variant={refund.status === 'completed' ? 'success' : 'outline'}>
+                                <Badge variant={refund.status === 'completed' ? 'default' : 'outline'}>
                                   {refund.status}
                                 </Badge>
                               </div>
