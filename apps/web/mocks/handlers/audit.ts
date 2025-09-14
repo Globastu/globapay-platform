@@ -102,7 +102,7 @@ const generateMockAuditLogs = (count: number = 50) => {
       id: `audit_${i + 1}`,
       organizationId: 'org-1',
       merchantId: 'merchant-1',
-      userId: user.id,
+      userId: user?.id || 'unknown-user',
       action,
       resourceType,
       resourceId,
