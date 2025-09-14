@@ -559,7 +559,7 @@ export default function MerchantDetailPage() {
                         </div>
                       </div>
                       <div className="flex items-center gap-3">
-                        <Badge variant={doc.status === 'approved' ? 'success' : 
+                        <Badge variant={doc.status === 'approved' ? 'default' : 
                                       doc.status === 'rejected' ? 'destructive' : 'secondary'}>
                           {doc.status}
                         </Badge>
