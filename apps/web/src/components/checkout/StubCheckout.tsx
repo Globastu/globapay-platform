@@ -85,37 +85,29 @@ export function StubCheckout({
       // Declined card
       return {
         success: false,
-        error: {
-          code: 'CARD_DECLINED',
-          message: 'Your card was declined. Please try a different payment method.',
-        },
+        errorCode: 'CARD_DECLINED',
+        errorMessage: 'Your card was declined. Please try a different payment method.',
       };
     } else if (cardNumber.startsWith('4000000000000028')) {
       // Insufficient funds
       return {
         success: false,
-        error: {
-          code: 'INSUFFICIENT_FUNDS',
-          message: 'Insufficient funds on your card.',
-        },
+        errorCode: 'INSUFFICIENT_FUNDS',
+        errorMessage: 'Insufficient funds on your card.',
       };
     } else if (cardNumber.startsWith('4000000000000036')) {
       // Expired card
       return {
         success: false,
-        error: {
-          code: 'CARD_EXPIRED',
-          message: 'Your card has expired.',
-        },
+        errorCode: 'CARD_EXPIRED',
+        errorMessage: 'Your card has expired.',
       };
     } else if (cardNumber.startsWith('4000000000000077')) {
       // Invalid CVV
       return {
         success: false,
-        error: {
-          code: 'INVALID_CVV',
-          message: 'Invalid security code.',
-        },
+        errorCode: 'INVALID_CVV',
+        errorMessage: 'Invalid security code.',
       };
     }
 
@@ -176,13 +168,11 @@ export function StubCheckout({
         if (!threeDSSuccess) {
           const threeDSResult: PaymentResult = {
             success: false,
-            error: {
-              code: '3DS_FAILED',
-              message: '3D Secure authentication failed',
-            },
+            errorCode: '3DS_FAILED',
+            errorMessage: '3D Secure authentication failed',
           };
           setStep('error');
-          setError(threeDSResult.error!.message);
+          setError(threeDSResult.errorMessage!);
           onPaymentFailed?.(threeDSResult);
           setProcessing(false);
           return;
@@ -196,13 +186,11 @@ export function StubCheckout({
     } catch (err) {
       const errorResult: PaymentResult = {
         success: false,
-        error: {
-          code: 'PROCESSING_ERROR',
-          message: 'An error occurred while processing your payment',
-        },
+        errorCode: 'PROCESSING_ERROR',
+        errorMessage: 'An error occurred while processing your payment',
       };
       setStep('error');
-      setError(errorResult.error!.message);
+      setError(errorResult.errorMessage!);
       onPaymentFailed?.(errorResult);
       setProcessing(false);
     }
