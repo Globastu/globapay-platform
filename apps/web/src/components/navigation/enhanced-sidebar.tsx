@@ -150,23 +150,22 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
     setTheme(nextTheme);
   };
 
-  if (!session?.user) {
-    return (
-      <div className={cn(
-        'flex h-full flex-col border-r bg-card transition-all duration-300',
-        collapsed ? 'w-16' : 'w-64'
-      )}>
-        <div className="flex h-16 items-center justify-center">
-          <div className="h-8 w-8 rounded bg-primary"></div>
-        </div>
-      </div>
-    );
-  }
+  // Create a default user for demo purposes when no session
+  const demoUser = {
+    name: 'Demo User',
+    email: 'demo@globapay.com',
+    role: 'Admin',
+    permissions: ['MERCHANTS_READ', 'TRANSACTIONS_READ', 'PAYMENT_LINKS_READ', 'GIFT_CARDS_READ', 'REPORTS_READ'],
+    image: null
+  };
+
+  const user = session?.user ? { ...session.user, image: (session.user as any).image } : demoUser;
+  const isDemo = !session?.user;
 
   const filteredNavigation = navigation.filter(item =>
     hasPermission(
-      session.user.permissions,
-      session.user.role,
+      user.permissions,
+      user.role,
       item.permissions,
       item.roles
     )
@@ -276,9 +275,9 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="sm" className="h-10 w-10 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
+                    <AvatarImage src={user.image} alt={user.name || ''} />
                     <AvatarFallback className="text-xs">
-                      {getInitials(session.user.name || 'User')}
+                      {getInitials(user.name || 'User')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -286,8 +285,8 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
               <DropdownMenuContent align="center" className="w-56">
                 <DropdownMenuLabel>
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium">{session.user.name}</p>
-                    <p className="text-xs text-muted-foreground">{session.user.email}</p>
+                    <p className="text-sm font-medium">{user.name}</p>
+                    <p className="text-xs text-muted-foreground">{user.email}</p>
                   </div>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
@@ -307,14 +306,14 @@ export function EnhancedSidebar({ collapsed = false, onCollapsedChange }: Enhanc
           <div className="space-y-3">
             <div className="flex items-center space-x-3">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
+                <AvatarImage src={user.image} alt={user.name || ''} />
                 <AvatarFallback>
-                  {getInitials(session.user.name || 'User')}
+                  {getInitials(user.name || 'User')}
                 </AvatarFallback>
               </Avatar>
               <div className="flex-1 space-y-1">
-                <p className="text-sm font-medium leading-none">{session.user.name}</p>
-                <p className="text-xs text-muted-foreground">{session.user.role}</p>
+                <p className="text-sm font-medium leading-none">{user.name}</p>
+                <p className="text-xs text-muted-foreground">{user.role}</p>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>

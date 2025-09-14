@@ -47,6 +47,17 @@ export function DashboardTopbar({
   const theme = themeValue || 'system';
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Create demo user for when no session
+  const demoUser = {
+    name: 'Demo User',
+    email: 'demo@globapay.com',
+    role: 'Admin',
+    image: null
+  };
+
+  const user = session?.user ? { ...session.user, image: (session.user as any).image } : demoUser;
+  const isDemo = !session?.user;
+
   const handleSignOut = () => {
     signOut({ callbackUrl: '/auth/signin' });
   };
@@ -139,14 +150,14 @@ export function DashboardTopbar({
           </Button>
 
           {/* User Profile */}
-          {session?.user && (
+          {(session?.user || isDemo) && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="relative h-9 w-9 rounded-full">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={(session.user as any).image} alt={session.user.name || ''} />
+                    <AvatarImage src={user.image} alt={user.name || ''} />
                     <AvatarFallback className="text-sm">
-                      {getInitials(session.user.name || 'User')}
+                      {getInitials(user.name || 'User')}
                     </AvatarFallback>
                   </Avatar>
                 </Button>
@@ -154,12 +165,12 @@ export function DashboardTopbar({
               <DropdownMenuContent className="w-56" align="end" forceMount>
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">{session.user.name}</p>
+                    <p className="text-sm font-medium leading-none">{user.name}</p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      {session.user.email}
+                      {user.email}
                     </p>
                     <p className="text-xs leading-none text-muted-foreground">
-                      Role: {(session.user as any).role || 'User'}
+                      Role: {user.role || 'User'}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -173,10 +184,12 @@ export function DashboardTopbar({
                   <span>Settings</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
+                {!isDemo && (
+                  <DropdownMenuItem onClick={handleSignOut} className="text-destructive">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    <span>Log out</span>
+                  </DropdownMenuItem>
+                )}
               </DropdownMenuContent>
             </DropdownMenu>
           )}

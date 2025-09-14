@@ -24,10 +24,11 @@ function shouldUseDashboardShell(pathname: string): boolean {
 }
 
 export function DashboardShell({ children }: DashboardShellProps) {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
 
   useEffect(() => {
     const checkScreenSize = () => {
@@ -42,10 +43,13 @@ export function DashboardShell({ children }: DashboardShellProps) {
     return () => window.removeEventListener('resize', checkScreenSize);
   }, [sidebarCollapsed]);
 
-  // Don't render shell for public routes or when not authenticated
-  if (!shouldUseDashboardShell(pathname) || !session?.user) {
+  // Don't render shell for public routes
+  if (!shouldUseDashboardShell(pathname)) {
     return <>{children}</>;
   }
+
+  // If no session, still render shell but with limited functionality
+  const showFullShell = !!session?.user;
 
   return (
     <div className="min-h-screen bg-background">
