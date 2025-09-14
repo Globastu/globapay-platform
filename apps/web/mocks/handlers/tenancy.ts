@@ -471,27 +471,27 @@ export const tenancyHandlers = [
         );
       }
 
-      const newMerchant = {
+      const newMerchant: Merchant = {
         id: `merch-${Math.random().toString(36).substr(2, 9)}`,
-        platformId: platformId || null,
+        platformId: platformId || undefined,
         name,
         legalName,
         email,
-        phone: body.phone,
-        website: body.website,
-        description: body.description,
+        phone: body.phone || undefined,
+        website: body.website || undefined,
+        description: body.description || undefined,
         address,
-        kybStatus: 'not_started',
+        kybStatus: 'not_started' as const,
         kybData: {
-          businessType: 'corporation',
+          businessType: 'corporation' as const,
           documents: [],
           owners: [],
         },
-        status: 'pending',
+        status: 'pending' as const,
         settings: {
           currency: settings?.currency || 'USD',
           timezone: settings?.timezone || 'UTC',
-          webhookUrl: settings?.webhookUrl,
+          webhookUrl: settings?.webhookUrl || undefined,
         },
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
