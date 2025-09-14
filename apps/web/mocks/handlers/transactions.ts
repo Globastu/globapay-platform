@@ -141,7 +141,21 @@ export const transactionHandlers = [
   // POST /transactions/:id/refund - Process refund
   http.post('*/transactions/:id/refund', async ({ params, request }) => {
     const { id } = params;
-    const transactionIndex = transactionsStore.findIndex(tx => tx.id === id);
+    const transactionId = Array.isArray(id) ? id[0] : id;
+    
+    if (!transactionId) {
+      return HttpResponse.json(
+        {
+          type: 'https://globapay.com/problems/validation-error',
+          title: 'Invalid Transaction ID',
+          status: 400,
+          detail: 'Transaction ID is required.',
+          instance: '/transactions/refund',
+        },
+        { status: 400 }
+      );
+    }
+    const transactionIndex = transactionsStore.findIndex(tx => tx.id === transactionId);
 
     if (transactionIndex === -1) {
       return HttpResponse.json(
@@ -149,8 +163,8 @@ export const transactionHandlers = [
           type: 'https://globapay.com/problems/not-found',
           title: 'Transaction Not Found',
           status: 404,
-          detail: `Transaction with ID '${id}' was not found.`,
-          instance: `/transactions/${id}/refund`,
+          detail: `Transaction with ID '${transactionId}' was not found.`,
+          instance: `/transactions/${transactionId}/refund`,
         },
         { status: 404 }
       );
@@ -166,7 +180,7 @@ export const transactionHandlers = [
           title: 'Invalid Transaction State',
           status: 400,
           detail: 'Only completed transactions can be refunded.',
-          instance: `/transactions/${id}/refund`,
+          instance: `/transactions/${transactionId}/refund`,
         },
         { status: 400 }
       );
@@ -184,7 +198,7 @@ export const transactionHandlers = [
             title: 'Invalid Refund Amount',
             status: 400,
             detail: 'Refund amount must be greater than zero.',
-            instance: `/transactions/${id}/refund`,
+            instance: `/transactions/${transactionId}/refund`,
             errors: {
               amount: ['Amount must be greater than zero'],
             },
@@ -205,7 +219,7 @@ export const transactionHandlers = [
             title: 'Refund Amount Exceeds Transaction',
             status: 400,
             detail: `Cannot refund $${(amount / 100).toFixed(2)}. Available for refund: $${((transaction.amount - totalRefunded) / 100).toFixed(2)}`,
-            instance: `/transactions/${id}/refund`,
+            instance: `/transactions/${transactionId}/refund`,
             errors: {
               amount: [`Cannot exceed remaining refundable amount of $${((transaction.amount - totalRefunded) / 100).toFixed(2)}`],
             },
@@ -215,7 +229,7 @@ export const transactionHandlers = [
       }
 
       // Create refund
-      const refund = createMockRefund(id, amount, reason);
+      const refund = createMockRefund(transactionId, amount, reason);
 
       // Simulate processing delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -258,7 +272,7 @@ export const transactionHandlers = [
           title: 'Refund Processing Failed',
           status: 500,
           detail: 'An error occurred while processing the refund.',
-          instance: `/transactions/${id}/refund`,
+          instance: `/transactions/${transactionId}/refund`,
         },
         { status: 500 }
       );
