@@ -47,7 +47,7 @@ export class MockLatencyControl {
     const presets = [0, 250, 500, 1000, 2000];
     const currentIndex = presets.indexOf(current);
     const nextIndex = (currentIndex + 1) % presets.length;
-    const nextLatency = presets[nextIndex];
+    const nextLatency = presets[nextIndex] ?? 0;
     
     this.setLatency(nextLatency);
     return nextLatency;
