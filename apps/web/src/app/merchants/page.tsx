@@ -291,7 +291,7 @@ export default function MerchantsPage() {
                 
                 <div>
                   <Label htmlFor="platform">Platform</Label>
-                  <Select value={filters.platformId} onValueChange={(value) => handleFilterChange('platformId', value)}>
+                  <Select {...(filters.platformId && { value: filters.platformId })} onValueChange={(value) => handleFilterChange('platformId', value)}>
                     <SelectTrigger>
                       <SelectValue placeholder="All platforms" />
                     </SelectTrigger>
