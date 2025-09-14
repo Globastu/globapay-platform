@@ -66,7 +66,7 @@ export function BarChartComponent({
                             {label}
                           </span>
                           <span className="font-bold text-muted-foreground">
-                            {payload[0].value}
+                            {payload[0]?.value}
                           </span>
                         </div>
                       </div>

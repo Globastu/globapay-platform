@@ -62,7 +62,7 @@ export function PieChartComponent({
             <Tooltip
               content={({ active, payload }) => {
                 if (active && payload && payload.length) {
-                  const data = payload[0].payload;
+                  const data = payload[0]?.payload;
                   return (
                     <div className="rounded-lg border bg-background p-2 shadow-sm">
                       <div className="flex items-center gap-2">
