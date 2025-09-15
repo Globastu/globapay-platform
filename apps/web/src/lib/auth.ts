@@ -11,6 +11,8 @@ declare module 'next-auth' {
       email: string;
       name: string;
       organizationId: string;
+      organizationType: 'platform' | 'merchant';
+      merchantId?: string | undefined;
       permissions: string[];
       role: string;
     };
@@ -23,6 +25,8 @@ declare module 'next-auth' {
     email: string;
     name: string;
     organizationId: string;
+    organizationType: 'platform' | 'merchant';
+    merchantId?: string | undefined;
     permissions: string[];
     role: string;
     accessToken: string;
@@ -34,6 +38,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     userId: string;
     organizationId: string;
+    organizationType: 'platform' | 'merchant';
+    merchantId?: string | undefined;
     permissions: string[];
     role: string;
     accessToken: string;
@@ -94,11 +100,18 @@ export const authOptions: NextAuthOptions = {
           const data = await response.json();
           const role = getUserRole(data.user.permissions);
 
+          // For now, determine organization type from permissions
+          // In a real app, this would come from the API response
+          const organizationType = data.user.permissions.includes('ORGANIZATION_WRITE') || 
+                                  data.user.permissions.includes('MERCHANTS_WRITE') ? 'platform' : 'merchant';
+          
           return {
             id: data.user.id,
             email: data.user.email,
             name: data.user.name,
             organizationId: data.user.organizationId,
+            organizationType,
+            merchantId: organizationType === 'merchant' ? data.user.organizationId : undefined,
             permissions: data.user.permissions,
             role,
             accessToken: data.accessToken,
@@ -119,6 +132,8 @@ export const authOptions: NextAuthOptions = {
           ...token,
           userId: user.id,
           organizationId: user.organizationId,
+          organizationType: user.organizationType,
+          merchantId: user.merchantId,
           permissions: user.permissions,
           role: user.role,
           accessToken: user.accessToken,
@@ -143,6 +158,8 @@ export const authOptions: NextAuthOptions = {
           email: token.email as string,
           name: token.name as string,
           organizationId: token.organizationId,
+          organizationType: token.organizationType,
+          merchantId: token.merchantId,
           permissions: token.permissions,
           role: token.role,
         },

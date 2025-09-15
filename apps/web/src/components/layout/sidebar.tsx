@@ -13,10 +13,13 @@ import {
   Receipt,
   Code,
   ChevronLeft,
-  Menu
+  Menu,
+  Building
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { useTenant } from '@/hooks/use-tenant';
+import { filterNavigationByTenant } from '@/lib/tenant';
 
 interface NavigationItem {
   name: string;
@@ -30,6 +33,11 @@ const navigation: NavigationItem[] = [
     name: 'Overview',
     href: '/',
     icon: LayoutDashboard,
+  },
+  {
+    name: 'Platforms',
+    href: '/platforms',
+    icon: Building,
   },
   {
     name: 'Merchants',
@@ -86,7 +94,9 @@ interface SidebarProps {
 }
 
 export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps) {
-  // Filter navigation based on feature flags
+  const { tenantInfo, isLoading, labels } = useTenant();
+
+  // Filter navigation based on feature flags and tenant permissions
   const filteredNavigation = navigation.filter(item => {
     // Hide Gift Cards if feature is disabled and we're not showing the badge
     if (item.href === '/gift-cards' && process.env.NEXT_PUBLIC_GLOBAGIFT_ENABLED === '0' && !item.badge) {
@@ -103,6 +113,9 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
     return true;
   });
 
+  // Apply tenant-based filtering
+  const tenantFilteredNavigation = isLoading ? filteredNavigation : filterNavigationByTenant(filteredNavigation, tenantInfo);
+
   return (
     <div className="flex h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Header */}
@@ -115,7 +128,9 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
             <>
               <div className="ml-3 flex flex-col">
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
-                <span className="text-xs text-gray-500 dark:text-gray-400">Platform</span>
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {tenantInfo?.type === 'platform' ? 'Platform' : 'Merchant'}
+                </span>
               </div>
               <Button
                 variant="ghost"
@@ -142,7 +157,7 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
-        {filteredNavigation.map((item) => {
+        {tenantFilteredNavigation.map((item) => {
           const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
           
