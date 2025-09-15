@@ -10,6 +10,7 @@ import {
   BarChart3,
   Settings,
   Gift,
+  Receipt,
   ChevronLeft,
   Menu
 } from 'lucide-react';
@@ -45,6 +46,11 @@ const navigation: NavigationItem[] = [
     icon: LinkIcon,
   },
   {
+    name: 'Invoices',
+    href: '/invoices',
+    icon: Receipt,
+  },
+  {
     name: 'Fraud',
     href: '/fraud',
     icon: Shield,
@@ -78,6 +84,10 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
   const filteredNavigation = navigation.filter(item => {
     // Hide Gift Cards if feature is disabled and we're not showing the badge
     if (item.href === '/gift-cards' && process.env.NEXT_PUBLIC_GLOBAGIFT_ENABLED === '0' && !item.badge) {
+      return false;
+    }
+    // Hide Invoices if feature is disabled
+    if (item.href === '/invoices' && process.env.NEXT_PUBLIC_INVOICES_ENABLED !== '1') {
       return false;
     }
     return true;

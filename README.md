@@ -128,6 +128,7 @@ globapay-platform/
 - [x] **Observability & Audit** - OpenTelemetry tracing, Prometheus metrics, comprehensive audit logging
 - [x] **Request Context Logging** - RequestId and tenant ID stamping in all logs
 - [x] **Audit Log Viewer** - Web-based audit trail with filtering and export capabilities
+- [x] **Invoices Module** - Complete Stripe-like invoicing with Gr4vy payment links
 
 ### 🚧 In Progress
 - [ ] **Webhook handling system**
@@ -361,6 +362,7 @@ pnpm test:unit
 - ✅ Verify Demo Data badge visibility
 - ✅ Test pagination and filtering
 - ✅ Validate mock vs real API mode
+- ✅ Complete invoice creation and payment flows
 
 ## 💳 Payment Links Implementation
 
@@ -412,7 +414,155 @@ mockLatency.presets.slow()  // Set to 1000ms
 mockLatency.get()           // Get current setting
 ```
 
+## 🧾 Invoices Module Implementation
+
+Complete Stripe-like invoicing system with Gr4vy payment link integration:
+
+### 🏗️ **Architecture** (`apps/web/src/app/(dashboard)/invoices/`)
+- **Feature Flag Controlled**: `NEXT_PUBLIC_INVOICES_ENABLED` for gradual rollout
+- **Contract-First Design**: Zod schemas with strict TypeScript validation
+- **Route Group Structure**: Clean App Router organization under `(dashboard)`
+- **Zero Build Errors**: Production-ready with comprehensive error handling
+
+### 🔧 **API Endpoints** (`apps/web/src/app/api/invoices/`)
+- **CRUD Operations**: `GET/POST /api/invoices`, `GET/PATCH /api/invoices/[id]`
+- **Payment Actions**: `POST /api/invoices/[id]/open` - Creates Gr4vy payment links
+- **Email Integration**: `POST /api/invoices/[id]/send` - Send invoice to customers
+- **Real-time Calculations**: `POST /api/invoices/[id]/recalculate` - Server-side totals
+- **Webhook Handler**: `POST /api/webhooks/gr4vy` - Payment completion events
+- **RFC-7807 Errors**: Standardized error responses with problem details
+
+### 💰 **Totals Calculation Engine** (`apps/web/src/lib/invoices/calculations.ts`)
+- **Pre-tax Discounts**: Applied before tax calculation for MVP
+- **Tax Handling**: Exclusive (add on top) and inclusive (extract portion) support
+- **Multi-currency**: Full international currency support
+- **Real-time Updates**: Live calculation in forms with validation
+
+### 🔗 **Gr4vy Integration** (`apps/web/src/lib/services/gr4vy.ts`)
+- **Payment Link Creation**: Secure metadata attachment with invoice context
+- **Success/Cancel URLs**: Proper redirect handling after payment
+- **Webhook Processing**: Automatic invoice status updates on payment completion
+- **Error Handling**: Graceful fallbacks when payment service unavailable
+- **Environment Configuration**: Separate staging/production credentials
+
+### 🖥️ **User Interface** (`apps/web/src/components/invoices/`)
+- **Invoice List**: Filterable table with status badges and pagination
+- **Create/Edit Forms**: Multi-section forms with live calculation preview
+- **Detail View**: Status-aware action buttons (Edit, Open, Send, Copy Link)
+- **Payment Flows**: Seamless integration with Gr4vy hosted checkout
+- **Responsive Design**: Mobile-friendly with Tailwind CSS and shadcn/ui
+
+### 🎭 **MSW Mock System** (`apps/web/mocks/handlers/invoices.ts`)
+- **Realistic Fixtures**: ~10 seeded invoices across all statuses (draft, open, paid, void)
+- **Full API Coverage**: All endpoints with proper validation and state management
+- **Payment Simulation**: Mock payment completion for testing workflows
+- **Tenant Context**: Proper merchant scoping in mock responses
+- **Development Tools**: Latency controls and debug capabilities
+
+### 📊 **Invoice Statuses & Workflows**
+```
+Draft → Open → Paid
+  ↓      ↓
+Void   Uncollectible
+```
+
+- **Draft**: Editable invoices, can be opened to create payment links
+- **Open**: Payment link active, awaiting customer payment
+- **Paid**: Payment completed via webhook, invoice locked
+- **Void**: Cancelled invoices (irreversible)
+- **Uncollectible**: Bad debt classification
+
+### 🔒 **Security & Compliance**
+- **Tenant Isolation**: All operations scoped to merchant/organization
+- **Payment Security**: No card data stored, all processing via certified PSP
+- **Webhook Verification**: Cryptographic signature validation (production)
+- **Audit Trail**: All invoice operations logged with user context
+- **Feature Gates**: Granular feature flag control for safe deployment
+
+### 🎯 **Key Features**
+- ✅ **Create & Edit** invoices with line items, tax, and discounts
+- ✅ **Multi-currency** support with proper formatting
+- ✅ **Payment Links** - One-click Gr4vy integration for customer payments
+- ✅ **Email Sending** - Invoice delivery with payment link inclusion
+- ✅ **Real-time Status** - Automatic updates via webhook processing
+- ✅ **PDF Preview** - HTML preview ready for PDF generation
+- ✅ **Live Calculations** - Server-side totals with client preview
+- ✅ **Feature Flags** - Safe deployment with `NEXT_PUBLIC_INVOICES_ENABLED`
+
+### 🧪 **Testing & Development**
+```bash
+# Enable invoices in development
+echo "NEXT_PUBLIC_INVOICES_ENABLED=1" >> apps/web/.env.local
+
+# Test with mock data (no backend required)
+pnpm dev:web:mock
+
+# Run invoice-specific tests
+cd apps/web
+pnpm test:unit -- invoices
+```
+
+### 🔄 **Webhook Flow Example**
+```
+1. Invoice created (status: draft)
+2. Invoice opened → Gr4vy payment link created (status: open)
+3. Customer pays via link → Gr4vy webhook fired
+4. Webhook processed → Invoice status updated (status: paid)
+5. Confirmation email sent (optional)
+```
+
 ## 📦 Deployment
+
+### Production Deployment Fixes
+
+Key issues resolved for successful Vercel deployment:
+
+#### 🔧 **Tailwind CSS Configuration**
+```javascript
+// tailwind.config.js - Fixed content scanning for route groups
+module.exports = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}", 
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}" // Covers route groups like (dashboard)
+  ],
+  // ... rest of config
+}
+```
+
+#### 📝 **PostCSS Configuration**
+```javascript
+// postcss.config.js - Critical missing file for Tailwind processing
+module.exports = {
+  plugins: {
+    tailwindcss: {},
+    autoprefixer: {},
+  },
+}
+```
+
+#### 🎨 **Global Styles Setup**
+```css
+/* globals.css - Proper Tailwind directives */
+@tailwind base;
+@tailwind components; 
+@tailwind utilities;
+
+@layer base {
+  /* Custom CSS variables and base styles */
+}
+```
+
+#### ⚛️ **React Hooks Compliance**
+- Fixed conditional hook calls by moving feature flag checks after all hooks
+- Ensured hooks are called in the same order on every render
+- Added proper dependency arrays with useCallback for exhaustive-deps compliance
+
+#### 📦 **Missing Dependencies**
+```bash
+# Added missing packages for production builds
+pnpm add zod autoprefixer
+```
 
 ### Docker Support
 Each application includes production-ready Dockerfiles:

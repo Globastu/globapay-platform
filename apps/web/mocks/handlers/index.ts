@@ -4,6 +4,7 @@ import { checkoutSessionHandlers } from './checkout-sessions';
 import { tenancyHandlers } from './tenancy';
 import { fraudHandlers } from './fraud';
 import { auditHandlers } from './audit';
+import { invoiceHandlers } from './invoices';
 
 // Combine all MSW handlers
 export const handlers = [
@@ -13,6 +14,7 @@ export const handlers = [
   ...tenancyHandlers,
   ...fraudHandlers,
   ...auditHandlers,
+  ...invoiceHandlers,
 ];
 
 export * from './payment-links';
@@ -21,3 +23,4 @@ export * from './checkout-sessions';
 export * from './tenancy';
 export * from './fraud';
 export * from './audit';
+export * from './invoices';
