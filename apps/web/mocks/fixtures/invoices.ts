@@ -51,15 +51,15 @@ export function generateMockInvoice(
   const dueDate = new Date(createdAt.getTime() + 30 * 24 * 60 * 60 * 1000);
   
   const currencies = ['USD', 'EUR', 'GBP'];
-  const currency = overrides.currency ?? currencies[Math.floor(Math.random() * currencies.length)]!;
+  const currency = overrides.currency ?? currencies[Math.floor(Math.random() * currencies.length)] ?? 'USD';
   
   const merchantIds = ['merchant_123', 'merchant_456', 'merchant_789'];
   const platformIds = ['platform_abc', 'platform_def', 'platform_ghi'];
   
   const invoice: Invoice = {
     id,
-    merchantId: overrides.merchantId ?? merchantIds[Math.floor(Math.random() * merchantIds.length)]!,
-    platformId: overrides.platformId || (Math.random() > 0.3 ? platformIds[Math.floor(Math.random() * platformIds.length)] : undefined),
+    merchantId: overrides.merchantId ?? merchantIds[Math.floor(Math.random() * merchantIds.length)] ?? 'merchant_123',
+    platformId: overrides.platformId || (Math.random() > 0.3 ? platformIds[Math.floor(Math.random() * platformIds.length)] ?? 'platform_abc' : undefined),
     customerId: overrides.customerId || (Math.random() > 0.4 ? `customer_${Math.random().toString(36).substr(2, 9)}` : undefined),
     number,
     currency,
@@ -84,86 +84,173 @@ export function generateMockInvoice(
   return invoice;
 }
 
-// Mock invoice data for different scenarios
+// Customer data for more realistic invoices
+const customers = [
+  { id: 'customer_acme_corp', name: 'Acme Corporation', email: 'billing@acme.com' },
+  { id: 'customer_tech_startup', name: 'TechFlow Startup', email: 'finance@techflow.io' },
+  { id: 'customer_enterprise', name: 'Enterprise Solutions Ltd', email: 'payments@enterprise.com' },
+  { id: 'customer_digital_agency', name: 'Digital Creative Agency', email: 'accounts@digitalcreative.com' },
+  { id: 'customer_consulting_firm', name: 'Strategic Consulting Firm', email: 'billing@strategic.com' },
+  { id: 'customer_ecommerce', name: 'E-Commerce Solutions', email: 'finance@ecommerce.net' },
+  { id: 'customer_saas_company', name: 'CloudTech SaaS', email: 'billing@cloudtech.com' },
+  { id: 'customer_marketing_co', name: 'Growth Marketing Co', email: 'payments@growthmarketing.com' },
+];
+
+// Generate invoices with varying due dates and statuses
+const generateTimedInvoice = (daysOffset: number, status: InvoiceStatus, customer: any, overrides: Partial<Invoice> = {}): Invoice => {
+  const baseDate = new Date();
+  const createdDate = new Date(baseDate.getTime() - Math.abs(daysOffset + 30) * 24 * 60 * 60 * 1000);
+  const dueDate = new Date(baseDate.getTime() + daysOffset * 24 * 60 * 60 * 1000);
+  
+  return generateMockInvoice({
+    customerId: customer.id,
+    dueDate: dueDate.toISOString(),
+    createdAt: createdDate.toISOString(),
+    updatedAt: status === 'paid' ? new Date(dueDate.getTime() - Math.random() * 5 * 24 * 60 * 60 * 1000).toISOString() : new Date().toISOString(),
+    paymentLinkId: ['open', 'paid'].includes(status) ? `link_${Math.random().toString(36).substr(2, 12)}` : undefined,
+    paymentLinkUrl: ['open', 'paid'].includes(status) ? `https://pay.gr4vy.com/demo_${Math.random().toString(36).substr(2, 8)}` : undefined,
+    ...overrides,
+  }, status);
+};
+
+// Mock invoice data with realistic scenarios
 export const mockInvoices: Invoice[] = [
-  // Recent draft invoices
+  // OVERDUE INVOICES (past due date)
+  generateTimedInvoice(-15, 'open', customers[0], {
+    id: 'inv_overdue_001',
+    number: 'INV-001201',
+    memo: 'Website development services - OVERDUE',
+    currency: 'USD',
+  }),
+  
+  generateTimedInvoice(-8, 'open', customers[1], {
+    id: 'inv_overdue_002', 
+    number: 'INV-001205',
+    memo: 'Monthly subscription fee',
+    currency: 'EUR',
+  }),
+  
+  generateTimedInvoice(-3, 'open', customers[2], {
+    id: 'inv_overdue_003',
+    number: 'INV-001210',
+    memo: 'Consulting services Q3',
+    currency: 'GBP',
+  }),
+
+  // DUE TODAY
+  generateTimedInvoice(0, 'open', customers[3], {
+    id: 'inv_due_today_001',
+    number: 'INV-001220',
+    memo: 'Digital marketing campaign - DUE TODAY',
+    currency: 'USD',
+  }),
+  
+  generateTimedInvoice(0, 'open', customers[4], {
+    id: 'inv_due_today_002',
+    number: 'INV-001221',
+    memo: 'Strategic planning workshop',
+    currency: 'EUR',
+  }),
+
+  // DUE SOON (next 7 days)
+  generateTimedInvoice(3, 'open', customers[5], {
+    id: 'inv_due_soon_001',
+    number: 'INV-001225',
+    memo: 'E-commerce platform setup',
+    currency: 'USD',
+  }),
+  
+  generateTimedInvoice(7, 'open', customers[6], {
+    id: 'inv_due_soon_002',
+    number: 'INV-001228',
+    memo: 'Cloud infrastructure services',
+    currency: 'USD',
+  }),
+
+  // NOT DUE YET (future due dates)
+  generateTimedInvoice(15, 'open', customers[7], {
+    id: 'inv_future_001',
+    number: 'INV-001235',
+    memo: 'Growth marketing retainer',
+    currency: 'USD',
+  }),
+  
+  generateTimedInvoice(22, 'open', customers[0], {
+    id: 'inv_future_002',
+    number: 'INV-001240',
+    memo: 'Annual support package',
+    currency: 'EUR',
+  }),
+  
+  generateTimedInvoice(30, 'open', customers[1], {
+    id: 'inv_future_003',
+    number: 'INV-001245',
+    memo: 'Custom integration development',
+    currency: 'USD',
+  }),
+
+  // RECENTLY PAID
+  generateTimedInvoice(-5, 'paid', customers[2], {
+    id: 'inv_paid_recent_001',
+    number: 'INV-001180',
+    memo: 'Q2 consulting services - PAID',
+    currency: 'USD',
+  }),
+  
+  generateTimedInvoice(-12, 'paid', customers[3], {
+    id: 'inv_paid_recent_002',
+    number: 'INV-001175',
+    memo: 'Brand redesign project',
+    currency: 'GBP',
+  }),
+  
+  generateTimedInvoice(-20, 'paid', customers[4], {
+    id: 'inv_paid_recent_003',
+    number: 'INV-001165',
+    memo: 'Leadership training program',
+    currency: 'EUR',
+  }),
+
+  // DRAFT INVOICES (not sent yet)
   generateMockInvoice({
     id: 'inv_draft_001',
-    number: 'INV-001234',
-    merchantId: 'merchant_demo',
-    customerId: 'customer_acme_corp',
+    number: 'INV-001250',
+    customerId: customers[5]?.id ?? 'customer_ecommerce',
     currency: 'USD',
-    memo: 'Q4 2024 Professional Services',
-    footer: 'Payment due within 30 days',
+    memo: 'New project proposal - DRAFT',
+    dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
   }, 'draft'),
   
   generateMockInvoice({
-    id: 'inv_draft_002', 
-    number: 'INV-001235',
-    merchantId: 'merchant_demo',
+    id: 'inv_draft_002',
+    number: 'INV-001251', 
+    customerId: customers[6]?.id ?? 'customer_saas_company',
     currency: 'EUR',
+    memo: 'Monthly maintenance fee',
+    dueDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000).toISOString(),
   }, 'draft'),
-  
-  // Open invoices with payment links
-  generateMockInvoice({
-    id: 'inv_open_001',
-    number: 'INV-001230',
-    merchantId: 'merchant_demo',
-    customerId: 'customer_tech_startup',
-    currency: 'USD',
-    memo: 'Monthly SaaS subscription',
-    paymentLinkId: 'link_open_demo_001',
-    paymentLinkUrl: 'https://pay.gr4vy.com/demo_open_001',
-  }, 'open'),
-  
-  generateMockInvoice({
-    id: 'inv_open_002',
-    number: 'INV-001231',
-    merchantId: 'merchant_demo', 
-    currency: 'GBP',
-    paymentLinkId: 'link_open_demo_002',
-    paymentLinkUrl: 'https://pay.gr4vy.com/demo_open_002',
-  }, 'open'),
-  
-  // Paid invoices
-  generateMockInvoice({
-    id: 'inv_paid_001',
-    number: 'INV-001225',
-    merchantId: 'merchant_demo',
-    customerId: 'customer_enterprise',
-    currency: 'USD',
-    memo: 'Annual license renewal',
-    paymentLinkId: 'link_paid_demo_001',
-    paymentLinkUrl: 'https://pay.gr4vy.com/demo_paid_001',
-  }, 'paid'),
-  
-  generateMockInvoice({
-    id: 'inv_paid_002',
-    number: 'INV-001226',
-    merchantId: 'merchant_demo',
-    currency: 'EUR',
-    paymentLinkId: 'link_paid_demo_002', 
-    paymentLinkUrl: 'https://pay.gr4vy.com/demo_paid_002',
-  }, 'paid'),
-  
-  // Edge cases
+
+  // VOID INVOICES
   generateMockInvoice({
     id: 'inv_void_001',
-    number: 'INV-001220',
-    merchantId: 'merchant_demo',
+    number: 'INV-001100',
+    customerId: customers[7]?.id ?? 'customer_marketing_co',
     currency: 'USD',
-    memo: 'Voided due to error',
+    memo: 'Cancelled project - VOID',
+    dueDate: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(),
   }, 'void'),
-  
-  generateMockInvoice({
-    id: 'inv_large_001',
-    number: 'INV-LARGE',
-    merchantId: 'merchant_demo',
+
+  // UNCOLLECTIBLE
+  generateTimedInvoice(-90, 'uncollectible', customers[0], {
+    id: 'inv_uncollectible_001',
+    number: 'INV-001050',
+    memo: 'Bad debt write-off',
     currency: 'USD',
-    items: createMockItems(8), // Large invoice with many items
-    memo: 'Large multi-item invoice for testing',
-  }, 'draft'),
+  }),
 ];
+
+// Export customer data for use in other components
+export { customers };
 
 // Helper to generate new invoice for testing
 export function generateNewInvoice(data: any): Invoice {

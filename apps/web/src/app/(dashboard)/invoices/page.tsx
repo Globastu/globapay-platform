@@ -17,10 +17,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import Link from 'next/link';
 import { useState } from 'react';
-import { InvoiceStatus } from '@/lib/contracts/invoices';
-
-// Mock data for now
-const mockInvoices = [] as any[];
+import { Invoice, InvoiceStatus } from '@/lib/contracts/invoices';
+import { InvoiceMetricsPanel } from '@/components/invoices/InvoiceMetricsPanel';
+import { InvoiceDetailView } from '@/components/invoices/InvoiceDetailView';
+import { mockInvoices } from '../../../../mocks/fixtures/invoices';
 
 function getStatusBadge(status: InvoiceStatus) {
   switch (status) {
@@ -44,6 +44,7 @@ export default function InvoicesPage() {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const [selectedInvoice, setSelectedInvoice] = useState<Invoice | null>(null);
 
   // Check if invoices feature is enabled
   if (process.env.NEXT_PUBLIC_INVOICES_ENABLED !== '1') {
@@ -56,7 +57,79 @@ export default function InvoicesPage() {
     );
   }
 
-  // If no invoices, show empty state
+  // Filter invoices based on search and status
+  const filteredInvoices = mockInvoices.filter(invoice => {
+    const matchesSearch = searchTerm === '' || 
+      invoice.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (invoice.customerId && invoice.customerId.toLowerCase().includes(searchTerm.toLowerCase()));
+    
+    const matchesStatus = statusFilter === 'all' || invoice.status === statusFilter;
+    
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedInvoices = filteredInvoices.slice(startIndex, endIndex);
+  const totalPages = Math.ceil(filteredInvoices.length / pageSize);
+
+  // Format currency
+  const formatCurrency = (amount: number, currency = 'USD') => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount / 100);
+  };
+
+  // Format date
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
+  };
+
+  // Check if invoice is overdue
+  const isOverdue = (invoice: any) => {
+    if (invoice.status !== 'open') return false;
+    return new Date(invoice.dueDate) < new Date();
+  };
+
+  // If no invoices after filtering, show empty state
+  if (filteredInvoices.length === 0 && mockInvoices.length > 0) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Invoices</h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Create and manage your invoices
+            </p>
+          </div>
+          <Link href="/invoices/new">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Invoice
+            </Button>
+          </Link>
+        </div>
+
+        <InvoiceMetricsPanel invoices={mockInvoices} />
+
+        <EmptyState
+          icon={<Search className="h-12 w-12" />}
+          title="No invoices found"
+          description="No invoices match your current search criteria. Try adjusting your filters."
+        />
+      </div>
+    );
+  }
+
+  // If no invoices at all, show empty state
   if (mockInvoices.length === 0) {
     return (
       <div className="space-y-6">
@@ -109,6 +182,9 @@ export default function InvoicesPage() {
         </Link>
       </div>
 
+      {/* Metrics Panel */}
+      <InvoiceMetricsPanel invoices={mockInvoices} />
+
       {/* Filters */}
       <div className="flex items-center space-x-4">
         <div className="relative flex-1 max-w-sm">
@@ -150,18 +226,96 @@ export default function InvoicesPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {/* Mock empty table for now */}
+            {paginatedInvoices.map((invoice) => (
+              <TableRow 
+                key={invoice.id} 
+                className={`cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 ${isOverdue(invoice) ? 'bg-red-50 dark:bg-red-900/10' : ''}`}
+                onClick={() => setSelectedInvoice(invoice)}
+              >
+                <TableCell>
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">{invoice.number}</div>
+                    <div className="text-sm text-gray-500 dark:text-gray-400">{invoice.id}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm">
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {invoice.customerId || 'Unknown Customer'}
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    {getStatusBadge(invoice.status)}
+                    {isOverdue(invoice) && (
+                      <Badge variant="destructive" className="text-xs">
+                        Overdue
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div>
+                    <div className="font-medium text-gray-900 dark:text-white">
+                      {formatCurrency(invoice.total, invoice.currency)}
+                    </div>
+                    {invoice.amountDue !== invoice.total && (
+                      <div className="text-sm text-gray-500 dark:text-gray-400">
+                        {formatCurrency(invoice.amountDue, invoice.currency)} due
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className={`text-sm ${isOverdue(invoice) ? 'text-red-600 dark:text-red-400 font-medium' : 'text-gray-900 dark:text-white'}`}>
+                    {formatDate(invoice.dueDate)}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center space-x-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedInvoice(invoice);
+                      }}
+                    >
+                      View
+                    </Button>
+                    {invoice.status === 'open' && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Remind
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
           </TableBody>
         </Table>
         <TablePagination
           currentPage={currentPage}
-          totalPages={1}
+          totalPages={totalPages}
           pageSize={pageSize}
-          totalItems={0}
+          totalItems={filteredInvoices.length}
           onPageChange={setCurrentPage}
           onPageSizeChange={setPageSize}
         />
       </div>
+
+      {/* Invoice Detail Modal */}
+      {selectedInvoice && (
+        <InvoiceDetailView
+          invoice={selectedInvoice}
+          onClose={() => setSelectedInvoice(null)}
+        />
+      )}
     </div>
   );
 }
