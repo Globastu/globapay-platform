@@ -1,18 +1,47 @@
 'use client';
 
 import { useSession } from 'next-auth/react';
-import { useMemo } from 'react';
+import { useMemo, useEffect, useState } from 'react';
 import { getTenantInfo, hasPermission, getTenantPageTitle, getTenantLabels, type TenantInfo } from '@/lib/tenant';
+import { isSandboxMode, createSandboxSession } from '@/lib/sandbox';
 
 export function useTenant() {
   const { data: session, status } = useSession();
+  const [sandboxSession, setSandboxSession] = useState<any>(null);
+
+  // Check if we're in sandbox mode and create a mock session
+  useEffect(() => {
+    if (isSandboxMode()) {
+      setSandboxSession(createSandboxSession());
+    }
+  }, []);
+
+  // Listen for sandbox tenant type changes
+  useEffect(() => {
+    if (!isSandboxMode()) return;
+
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'globapay-sandbox-tenant-type') {
+        setSandboxSession(createSandboxSession());
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
 
   const tenantInfo = useMemo(() => {
+    // In sandbox mode, use the sandbox session
+    if (isSandboxMode() && sandboxSession) {
+      return getTenantInfo(sandboxSession);
+    }
+    
+    // In production, use the real session
     if (status === 'loading' || !session) {
       return null;
     }
     return getTenantInfo(session);
-  }, [session, status]);
+  }, [session, status, sandboxSession]);
 
   const checkPermission = useMemo(() => {
     return (permission: string) => hasPermission(tenantInfo, permission);
@@ -28,7 +57,7 @@ export function useTenant() {
 
   return {
     tenantInfo,
-    isLoading: status === 'loading',
+    isLoading: isSandboxMode() ? false : status === 'loading',
     isPlatform: tenantInfo?.type === 'platform',
     isMerchant: tenantInfo?.type === 'merchant',
     checkPermission,
@@ -41,6 +70,8 @@ export function useTenant() {
     canViewAllTransactions: checkPermission('view_all_transactions'),
     canAccessFraudManagement: checkPermission('access_fraud_management'),
     canAccessPlatforms: checkPermission('access_platforms'),
+    // Sandbox-specific properties
+    isSandbox: isSandboxMode(),
   };
 }
 

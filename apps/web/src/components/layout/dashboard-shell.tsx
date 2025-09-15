@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
 import { Sidebar } from './sidebar';
 import { Topbar } from './topbar';
+import { SandboxTenantToggle } from '@/components/sandbox/SandboxTenantToggle';
 import { cn } from '@/lib/utils';
 
 interface DashboardShellProps {
@@ -81,6 +82,9 @@ export function DashboardShell({ children, session }: DashboardShellProps) {
           </main>
         </div>
       </div>
+
+      {/* Sandbox Tenant Toggle */}
+      <SandboxTenantToggle />
     </div>
   );
 }
