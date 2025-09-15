@@ -5,18 +5,53 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PaymentMethod } from '@/lib/contracts/checkout-builder';
+import Image from 'next/image';
 
 interface PaymentOptionsSectionProps {
   control: Control<FieldValues>;
 }
 
-const paymentMethods: { value: PaymentMethod; label: string; description: string }[] = [
-  { value: 'card', label: 'Credit/Debit Cards', description: 'Visa, Mastercard, American Express' },
-  { value: 'apple_pay', label: 'Apple Pay', description: 'Quick checkout with Apple Pay' },
-  { value: 'google_pay', label: 'Google Pay', description: 'Quick checkout with Google Pay' },
-  { value: 'paypal', label: 'PayPal', description: 'Pay with your PayPal account' },
-  { value: 'bank_transfer', label: 'Bank Transfer', description: 'Direct bank transfer' },
-  { value: 'buy_now_pay_later', label: 'Buy Now Pay Later', description: 'Split payments over time' },
+const paymentMethods: { 
+  value: PaymentMethod; 
+  label: string; 
+  description: string;
+  logos?: string[];
+}[] = [
+  { 
+    value: 'card', 
+    label: 'Credit/Debit Cards', 
+    description: 'Visa, Mastercard, and more',
+    logos: ['/providers/visa.svg', '/providers/mastercard.svg', '/providers/unionpay.svg']
+  },
+  { 
+    value: 'apple_pay', 
+    label: 'Apple Pay', 
+    description: 'Quick checkout with Apple Pay',
+    logos: ['/providers/apple-pay.svg']
+  },
+  { 
+    value: 'google_pay', 
+    label: 'Google Pay', 
+    description: 'Quick checkout with Google Pay',
+    logos: ['/providers/google-pay.svg']
+  },
+  { 
+    value: 'paypal', 
+    label: 'PayPal', 
+    description: 'Pay with your PayPal account',
+    logos: ['/providers/paypal.svg']
+  },
+  { 
+    value: 'bank_transfer', 
+    label: 'Bank Transfer', 
+    description: 'Direct bank transfer and iDeal',
+    logos: ['/providers/ideal.svg']
+  },
+  { 
+    value: 'buy_now_pay_later', 
+    label: 'Buy Now Pay Later', 
+    description: 'Split payments over time'
+  },
 ];
 
 export function PaymentOptionsSection({ control }: PaymentOptionsSectionProps) {
@@ -64,7 +99,7 @@ export function PaymentOptionsSection({ control }: PaymentOptionsSectionProps) {
                 {paymentMethods.map((method) => (
                   <div
                     key={method.value}
-                    className="flex items-start space-x-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800"
+                    className="flex items-start space-x-3 p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                   >
                     <Checkbox
                       id={method.value}
@@ -79,15 +114,34 @@ export function PaymentOptionsSection({ control }: PaymentOptionsSectionProps) {
                       }}
                     />
                     <div className="flex-1 min-w-0">
-                      <Label
-                        htmlFor={method.value}
-                        className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
-                      >
-                        {method.label}
-                      </Label>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        {method.description}
-                      </p>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label
+                            htmlFor={method.value}
+                            className="text-sm font-medium text-gray-900 dark:text-white cursor-pointer"
+                          >
+                            {method.label}
+                          </Label>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">
+                            {method.description}
+                          </p>
+                        </div>
+                        {method.logos && (
+                          <div className="flex items-center space-x-2 ml-4">
+                            {method.logos.map((logo, index) => (
+                              <div key={index} className="w-8 h-6 relative bg-white rounded border border-gray-200 flex items-center justify-center">
+                                <Image
+                                  src={logo}
+                                  alt=""
+                                  width={24}
+                                  height={16}
+                                  className="max-w-full max-h-full object-contain"
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -5,15 +5,15 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
-interface RedirectsBrandingSectionProps {
+interface CheckoutConfigSectionProps {
   control: Control<FieldValues>;
 }
 
-export function RedirectsBrandingSection({ control }: RedirectsBrandingSectionProps) {
+export function CheckoutConfigSection({ control }: CheckoutConfigSectionProps) {
   return (
     <div className="space-y-4">
       <div className="border-b border-gray-200 dark:border-gray-800 pb-4">
-        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Redirects & Branding</h3>
+        <h3 className="text-lg font-medium text-gray-900 dark:text-white">Checkout Configuration</h3>
         <p className="text-sm text-gray-500 dark:text-gray-400">
           Configure post-payment redirects and checkout appearance
         </p>
@@ -28,7 +28,7 @@ export function RedirectsBrandingSection({ control }: RedirectsBrandingSectionPr
               Where to redirect customers after successful payment
             </p>
             <Controller
-              name="redirectsBranding.successUrl"
+              name="checkoutConfig.successUrl"
               control={control}
               render={({ field, fieldState }) => (
                 <div>
@@ -53,7 +53,7 @@ export function RedirectsBrandingSection({ control }: RedirectsBrandingSectionPr
               Where to redirect customers if they cancel the payment
             </p>
             <Controller
-              name="redirectsBranding.cancelUrl"
+              name="checkoutConfig.cancelUrl"
               control={control}
               render={({ field, fieldState }) => (
                 <div>
@@ -80,7 +80,7 @@ export function RedirectsBrandingSection({ control }: RedirectsBrandingSectionPr
             Choose the appearance theme for your checkout
           </p>
           <Controller
-            name="redirectsBranding.theme"
+            name="checkoutConfig.theme"
             control={control}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
@@ -103,7 +103,7 @@ export function RedirectsBrandingSection({ control }: RedirectsBrandingSectionPr
             Add custom CSS to style your checkout widget
           </p>
           <Controller
-            name="redirectsBranding.customCss"
+            name="checkoutConfig.customCss"
             control={control}
             render={({ field }) => (
               <textarea

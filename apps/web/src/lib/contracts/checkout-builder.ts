@@ -13,24 +13,15 @@ export const PaymentMethodSchema = z.enum([
   'buy_now_pay_later'
 ]);
 
-// Product Details Section
-export const ProductDetailsSchema = z.object({
-  name: z.string().min(1, "Product name is required"),
-  description: z.string().optional(),
-  amount: MoneyInt.min(1, "Amount must be greater than 0"),
-  currency: Currency.default("USD"),
-});
-
 // Payment Options Section
 export const PaymentOptionsSchema = z.object({
-  type: z.enum(['one_time', 'subscription']).default('one_time'),
   methods: z.array(PaymentMethodSchema).min(1, "At least one payment method is required"),
   require3DS: z.boolean().default(false),
   skipFraudCheck: z.boolean().default(false),
 });
 
-// Redirects & Branding Section
-export const RedirectsBrandingSchema = z.object({
+// Checkout Configuration Section  
+export const CheckoutConfigSchema = z.object({
   successUrl: z.string().url("Success URL must be valid"),
   cancelUrl: z.string().url("Cancel URL must be valid"),
   theme: z.enum(['light', 'dark']).default('light'),
@@ -39,9 +30,8 @@ export const RedirectsBrandingSchema = z.object({
 
 // Complete Checkout Builder Form
 export const CheckoutBuilderFormSchema = z.object({
-  productDetails: ProductDetailsSchema,
   paymentOptions: PaymentOptionsSchema,
-  redirectsBranding: RedirectsBrandingSchema,
+  checkoutConfig: CheckoutConfigSchema,
 });
 
 // Gr4vy API Request/Response Schemas
@@ -86,9 +76,8 @@ export const EmbedCodeResultSchema = z.object({
 });
 
 // Type exports
-export type ProductDetails = z.infer<typeof ProductDetailsSchema>;
 export type PaymentOptions = z.infer<typeof PaymentOptionsSchema>;
-export type RedirectsBranding = z.infer<typeof RedirectsBrandingSchema>;
+export type CheckoutConfig = z.infer<typeof CheckoutConfigSchema>;
 export type CheckoutBuilderForm = z.infer<typeof CheckoutBuilderFormSchema>;
 export type CreateGr4vyCheckoutSessionRequest = z.infer<typeof CreateGr4vyCheckoutSessionRequest>;
 export type Gr4vyCheckoutSessionResponse = z.infer<typeof Gr4vyCheckoutSessionResponse>;
