@@ -11,6 +11,7 @@ import {
   Settings,
   Gift,
   Receipt,
+  Code,
   ChevronLeft,
   Menu
 } from 'lucide-react';
@@ -44,6 +45,11 @@ const navigation: NavigationItem[] = [
     name: 'Payment Links',
     href: '/payment-links',
     icon: LinkIcon,
+  },
+  {
+    name: 'Checkout Builder',
+    href: '/checkout-builder',
+    icon: Code,
   },
   {
     name: 'Invoices',
@@ -88,6 +94,10 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
     }
     // Hide Invoices if feature is disabled
     if (item.href === '/invoices' && process.env.NEXT_PUBLIC_INVOICES_ENABLED !== '1') {
+      return false;
+    }
+    // Hide Checkout Builder if feature is disabled
+    if (item.href === '/checkout-builder' && process.env.NEXT_PUBLIC_CHECKOUT_ENABLED !== '1') {
       return false;
     }
     return true;

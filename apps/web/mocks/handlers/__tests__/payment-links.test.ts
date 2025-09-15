@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach, afterAll } from 'vitest';
 import { http, HttpResponse } from 'msw';
 import { setupServer } from 'msw/node';
 import { paymentLinkHandlers } from '../payment-links';
@@ -213,7 +213,7 @@ describe('Payment Links MSW Handlers', () => {
       // First get a link to update
       const listResponse = await fetch('/payment-links');
       const listData = await listResponse.json();
-      const linkToUpdate = listData.data.find((link: any) => link.status === 'pending');
+      let linkToUpdate = listData.data.find((link: any) => link.status === 'pending');
 
       if (!linkToUpdate) {
         // Create one first
