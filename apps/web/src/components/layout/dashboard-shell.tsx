@@ -8,36 +8,21 @@ import { cn } from '@/lib/utils';
 
 interface DashboardShellProps {
   children: React.ReactNode;
+  session?: any;
 }
 
-// Routes that should NOT use the dashboard shell (public pages)
-const PUBLIC_ROUTES = [
-  '/auth',
-  '/pay',
-  '/api',
-];
-
-function shouldUseDashboardShell(pathname: string): boolean {
-  return !PUBLIC_ROUTES.some(route => pathname.startsWith(route));
-}
-
-export function DashboardShell({ children }: DashboardShellProps) {
+export function DashboardShell({ children, session }: DashboardShellProps) {
   const pathname = usePathname();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const shouldUseShell = shouldUseDashboardShell(pathname);
 
   // Close mobile menu on route change
   useEffect(() => {
-    if (shouldUseShell) {
-      setMobileMenuOpen(false);
-    }
-  }, [pathname, shouldUseShell]);
+    setMobileMenuOpen(false);
+  }, [pathname]);
 
   // Auto-collapse sidebar on mobile
   useEffect(() => {
-    if (!shouldUseShell) return;
-    
     const checkScreenSize = () => {
       if (window.innerWidth < 1024) {
         setSidebarCollapsed(true);
@@ -47,12 +32,7 @@ export function DashboardShell({ children }: DashboardShellProps) {
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
     return () => window.removeEventListener('resize', checkScreenSize);
-  }, [shouldUseShell]);
-
-  // Don't render shell for public routes
-  if (!shouldUseShell) {
-    return <>{children}</>;
-  }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
