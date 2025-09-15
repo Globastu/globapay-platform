@@ -17,7 +17,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
 
   return (
     <html lang="en" className={inter.variable}>
-      <body>
+      <body className="min-h-screen font-sans bg-gray-50">
         <Providers session={session}>{children}</Providers>
       </body>
     </html>

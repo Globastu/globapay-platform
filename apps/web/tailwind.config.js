@@ -4,8 +4,17 @@ module.exports = {
   content: [
     './src/pages/**/*.{js,ts,jsx,tsx,mdx}',
     './src/components/**/*.{js,ts,jsx,tsx,mdx}',
-    './src/app/**/*.{js,ts,jsx,tsx,mdx}',
+    './src/app/**/*.{js,ts,jsx,tsx,mdx}',   // covers (dashboard) and (public)
     '../../packages/ui/src/**/*.{js,ts,jsx,tsx,mdx}',
+  ],
+  safelist: [
+    "text-green-600","bg-green-50",
+    "text-amber-600","bg-amber-50", 
+    "text-red-600","bg-red-50",
+    "text-blue-600","bg-blue-50",
+    "text-green-400","text-red-400",
+    "bg-green-100","bg-green-900",
+    "dark:bg-green-900","dark:text-green-200",
   ],
   theme: {
     container: {
@@ -71,6 +80,7 @@ module.exports = {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        "2xl": "1rem",
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],
@@ -96,6 +106,7 @@ module.exports = {
         'soft': '0 2px 8px 0 rgba(99, 99, 99, 0.2)',
         'medium': '0 4px 12px 0 rgba(99, 99, 99, 0.2)',
         'strong': '0 8px 24px 0 rgba(99, 99, 99, 0.2)',
+        'card': '0 1px 2px rgba(0,0,0,.05)',
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",

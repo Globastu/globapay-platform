@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Base layer */
 @layer base {
   :root {
     --background: 0 0% 100%;
@@ -31,7 +32,7 @@
     --error-foreground: 210 40% 98%;
     --info: 221 83% 53%;
     --info-foreground: 210 40% 98%;
-    --radius: 0.5rem;
+    --radius: 1rem;
     --font-inter: "Inter", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", "Fira Code", "Consolas", monospace;
   }
@@ -65,18 +66,34 @@
     --info: 217.2 91.2% 59.8%;
     --info-foreground: 222.2 84% 4.9%;
   }
-}
 
-@layer base {
+  html, body, #__next {
+    height: 100%;
+  }
+  
   * {
     @apply border-border;
   }
+  
   body {
-    @apply bg-background text-foreground;
+    @apply bg-gray-50 text-gray-900 antialiased min-h-screen font-sans;
+  }
+  
+  .dark body {
+    @apply bg-gray-950 text-gray-50;
   }
 }
 
+/* Card polish */
 @layer components {
+  .card {
+    @apply bg-white rounded-2xl shadow-card;
+  }
+  
+  .dark .card {
+    @apply bg-gray-900;
+  }
+
   .sidebar-scroll::-webkit-scrollbar {
     @apply w-2;
   }
