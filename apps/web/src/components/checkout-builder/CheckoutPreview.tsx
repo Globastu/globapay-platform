@@ -220,7 +220,7 @@ export function CheckoutPreview({ formData }: CheckoutPreviewProps) {
               <p className={`text-xs ${
                 theme === 'dark' ? 'text-gray-400' : 'text-gray-500'
               }`}>
-                Secured by Gr4vy • Your payment info is safe
+                Secured by Globapay • Your payment is safe
               </p>
             </div>
           </div>
