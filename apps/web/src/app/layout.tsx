@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import { getServerSession } from 'next-auth/next';
-import { Providers } from '../components/providers';
-import { DashboardShell } from '../components/layout/dashboard-shell';
-import { authOptions } from '../lib/auth';
+import { Providers } from '@/components/providers';
+import { DashboardShell } from '@/components/layout/dashboard-shell';
+import { authOptions } from '@/lib/auth';
 import './globals.css';
 
 const inter = Inter({ 
