@@ -98,7 +98,7 @@ interface SidebarProps {
 // Component to handle logo display with fallbacks
 function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; className?: string }) {
   if (collapsed) {
-    // Try to load company icon, fallback to placeholder, then to "G"
+    // Try to load company icon with dark mode support, fallback to regular icon, then to "G"
     return (
       <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", className)}>
         <Image
@@ -106,7 +106,7 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
           alt="Company Icon"
           width={32}
           height={32}
-          className="rounded-lg"
+          className="rounded-lg dark:hidden"
           onError={(e) => {
             // Fallback to PNG if SVG fails
             const img = e.target as HTMLImageElement;
@@ -122,11 +122,34 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
             }
           }}
         />
+        <Image
+          src="/images/branding/icon-dark.svg"
+          alt="Company Icon Dark"
+          width={32}
+          height={32}
+          className="rounded-lg hidden dark:block"
+          onError={(e) => {
+            // Fallback to regular icon in dark mode if dark icon fails
+            const img = e.target as HTMLImageElement;
+            if (img.src.includes('icon-dark.svg')) {
+              img.src = '/images/branding/icon.svg';
+            } else if (img.src.includes('.svg')) {
+              img.src = '/images/branding/icon.png';
+            } else {
+              // Ultimate fallback to letter
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) {
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent"><span class="text-sm font-bold text-white">G</span></div>';
+              }
+            }
+          }}
+        />
       </div>
     );
   }
 
-  // Expanded sidebar - show full logo
+  // Expanded sidebar - show full logo with dark mode support
   return (
     <div className={cn("flex items-center", className)}>
       <Image
@@ -134,11 +157,41 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
         alt="Company Logo"
         width={200}
         height={40}
-        className="h-8 w-auto"
+        className="h-8 w-auto dark:hidden"
         onError={(e) => {
           // Fallback chain: logo.svg -> logo.png -> manual layout with icon + text
           const img = e.target as HTMLImageElement;
           if (img.src.includes('logo.svg')) {
+            img.src = '/images/branding/logo.png';
+          } else {
+            // Ultimate fallback - hide image and show manual layout
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (parent) {
+              parent.innerHTML = `
+                <div class="flex items-center">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
+                    <span class="text-sm font-bold text-white">G</span>
+                  </div>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
+                </div>
+              `;
+            }
+          }
+        }}
+      />
+      <Image
+        src="/images/branding/logo-dark.svg"
+        alt="Company Logo Dark"
+        width={200}
+        height={40}
+        className="h-8 w-auto hidden dark:block"
+        onError={(e) => {
+          // Fallback to regular logo in dark mode if dark logo fails
+          const img = e.target as HTMLImageElement;
+          if (img.src.includes('logo-dark.svg')) {
+            img.src = '/images/branding/logo.svg';
+          } else if (img.src.includes('logo.svg')) {
             img.src = '/images/branding/logo.png';
           } else {
             // Ultimate fallback - hide image and show manual layout
@@ -187,10 +240,16 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
   return (
     <div className="flex h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Header */}
-      <div className="flex h-16 items-center px-4 border-b border-gray-200 dark:border-gray-800">
-        <div className={cn('flex items-center w-full', collapsed ? 'justify-center' : 'justify-between')}>
+      <div className="flex h-16 items-center border-b border-gray-200 dark:border-gray-800">
+        <div className={cn(
+          'flex items-center w-full',
+          collapsed ? 'flex-col justify-center px-2 py-2' : 'justify-between px-4'
+        )}>
           {/* Logo Section */}
-          <div className="flex items-center">
+          <div className={cn(
+            'flex items-center',
+            collapsed ? 'mb-2' : 'flex-1 min-w-0'
+          )}>
             <CompanyLogo collapsed={collapsed} />
             {!collapsed && (
               <div className="ml-3 flex flex-col">
@@ -206,7 +265,10 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 w-8 p-0 flex-shrink-0"
+            className={cn(
+              "h-8 w-8 p-0 flex-shrink-0",
+              collapsed ? "" : "ml-2"
+            )}
             onClick={() => onCollapsedChange(!collapsed)}
             title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
