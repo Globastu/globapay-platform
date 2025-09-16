@@ -4,7 +4,7 @@
 [![codecov](https://codecov.io/gh/globapay/platform/branch/main/graph/badge.svg)](https://codecov.io/gh/globapay/platform)
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=globapay_platform&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=globapay_platform)
 
-A **contract-first**, multi-tenant payments orchestration platform built with TypeScript, supporting both single-merchant and platform tenants with sub-merchants.
+A **contract-first**, multi-tenant payments orchestration platform built with TypeScript, supporting a 3-level tenant hierarchy: Admin (Globapay Staff), Platform Partners, and Merchants.
 
 ## 🚀 Quick Start
 
@@ -29,35 +29,35 @@ pnpm dev
 docker-compose up
 ```
 
-### 🎭 Mock Mode (Frontend Only)
+### 🎭 Sandbox Mode (Frontend Only)
 
 Run the web dashboard with **realistic demo data** without needing the backend API:
 
 ```bash
-# Web app with MSW mocks
-pnpm dev:web:mock
+# Web app with sandbox mode
+pnpm dev
 
-# Or Prism schema mocks (serves OpenAPI spec)
-pnpm mock:server
+# Enable sandbox mode (auto-enabled on localhost)
+NEXT_PUBLIC_SANDBOX_MODE=1
 ```
 
-**Mock Mode Features:**
-- ✅ **Realistic fixtures** for payment links & transactions
+**Sandbox Mode Features:**
+- ✅ **3-Level Tenant Hierarchy** - Switch between Admin, Platform, and Merchant views
+- ✅ **150 Realistic Transactions** with filtering, pagination, CSV export
+- ✅ **Comprehensive Fraud Dashboard** with risk scoring and high-risk monitoring  
 - ✅ **Full CRUD operations** (create, read, update, delete)
-- ✅ **Pagination & filtering** with search
 - ✅ **Transaction refunds** with validation
-- ✅ **Demo Data badge** when active
-- ✅ **Multi-tenant scenarios** (single & platform merchants)
-- ✅ **E2E testing** with Playwright
+- ✅ **Multi-tenant scenarios** with proper permission scoping
+- ✅ **Sandbox Toggle UI** with real-time tenant switching
 
 **Environment Configuration:**
 ```bash
 # Copy example config
 cp apps/web/.env.local.example apps/web/.env.local
 
-# Enable mock mode
-NEXT_PUBLIC_MOCK=1
-NEXT_PUBLIC_API_BASE_URL=
+# Sandbox mode is auto-enabled on localhost
+# Manually enable with:
+NEXT_PUBLIC_SANDBOX_MODE=1
 ```
 
 ### Available Services
@@ -109,20 +109,20 @@ globapay-platform/
 - [x] **CI/CD pipeline** with GitHub Actions
 - [x] **Docker containers** for production deployment
 - [x] **Authentication & RBAC system** with JWT + API keys
-- [x] **Multi-tenant architecture** with organization scoping
+- [x] **3-level tenant architecture** (Admin/Platform/Merchant) with organization scoping
 - [x] **Audit logging service** for compliance
 - [x] **NextAuth integration** for web dashboard
 - [x] **Role-aware navigation** with permission-based UI
-- [x] **Full mock mode** with MSW + realistic fixtures
-- [x] **Demo data badge** for mock mode visualization
-- [x] **Prism schema mocking** for contract-first development
+- [x] **Full sandbox mode** with 150 realistic transactions + fraud analytics
+- [x] **Sandbox tenant toggle** for testing different user levels
+- [x] **Contract-first development** with OpenAPI + MSW mocks
 - [x] **Payment Links E2E** - Complete vertical slice with live API + MSW
 - [x] **CRUD operations** - Create, list, filter, void, resend payment links
 - [x] **Comprehensive testing** - Unit, integration, and E2E tests
 - [x] **Transaction Management** - Processing, refunds, CSV export
-- [x] **Multi-tenant KYB System** - Platform/sub-merchant onboarding with verification
-- [x] **Merchant Onboarding Tracker** - Step-by-step progress visualization
-- [x] **Role-based Access Control** - PlatformAdmin vs MerchantAdmin permissions
+- [x] **3-Level KYB System** - Admin can onboard platforms, platforms onboard merchants
+- [x] **Merchant Onboarding Tracker** - Step-by-step progress visualization  
+- [x] **Hierarchical RBAC** - Admin/Platform/Merchant permissions with proper isolation
 - [x] **Fraud Detection System** - Complete risk scoring with mock provider interface
 - [x] **Fraud Dashboard** - Score distribution charts and high-risk transaction monitoring
 - [x] **Observability & Audit** - OpenTelemetry tracing, Prometheus metrics, comprehensive audit logging
@@ -214,14 +214,25 @@ All API development follows the **OpenAPI specification** in `contracts/openapi.
 - **WebhookEvent**: System notifications with retry logic
 - **AuditLog**: Security and compliance logging with full context
 
-### Multi-Tenancy Model
+### 3-Level Tenant Hierarchy
 ```
-Platform Organization
-└── Merchants (sub-tenants)
-    ├── Users (scoped access)
-    ├── Payment Links
-    ├── Transactions
-    └── Settings
+Admin (Globapay Staff)
+├── Can onboard Platform Partners
+├── Can onboard Merchants directly
+├── Full system access
+└── Fraud monitoring across all tenants
+
+Platform Partners
+├── Can onboard Merchants
+├── Can bill their Merchants
+├── Access to their Merchant ecosystem
+└── Platform-level reporting
+
+Merchants (End Users)  
+├── Payment processing functionality
+├── Transaction management
+├── Customer payment links
+└── Merchant-scoped reporting
 ```
 
 ## 🛠️ Development Commands
@@ -307,11 +318,13 @@ pnpm db:reset     # Reset database (destructive)
 - **Multi-Factor Authentication**: TOTP support for enhanced security
 - **Session Management**: NextAuth integration with automatic token refresh
 
-### Role-Based Access Control (RBAC)
-- **Hierarchical Roles**: PlatformAdmin > Admin > MerchantAdmin > Staff > Analyst
-- **Permission-Based**: Granular permissions (READ, WRITE, DELETE) per resource
-- **Dynamic Navigation**: UI elements shown/hidden based on user permissions
-- **API Middleware**: Request-level authorization with tenant scoping
+### 3-Level Role-Based Access Control (RBAC)
+- **Admin Level**: Globapay staff with full platform access and cross-tenant visibility
+- **Platform Level**: Partner organizations managing their merchant ecosystem with billing capabilities
+- **Merchant Level**: End users with payment processing functionality scoped to their organization
+- **Permission-Based**: Granular permissions (READ, WRITE, DELETE) per resource and tenant level
+- **Dynamic Navigation**: UI elements and pages shown/hidden based on user permissions and tenant type
+- **API Middleware**: Request-level authorization with hierarchical tenant scoping
 
 ### Security Features
 - **Tenant Isolation**: Organization/merchant-scoped data access
@@ -509,6 +522,62 @@ pnpm test:unit -- invoices
 3. Customer pays via link → Gr4vy webhook fired
 4. Webhook processed → Invoice status updated (status: paid)
 5. Confirmation email sent (optional)
+```
+
+## 🎮 Sandbox Mode Implementation
+
+Complete sandbox environment for testing all tenant levels without backend dependencies:
+
+### 🏗️ **3-Level Tenant System** (`apps/web/src/lib/sandbox.ts`)
+- **Admin Simulation**: Globapay staff with platform/merchant onboarding capabilities
+- **Platform Simulation**: Partner organizations with merchant management and billing features
+- **Merchant Simulation**: End users with payment processing functionality
+- **Real-time Switching**: Sandbox toggle UI for instant tenant level changes
+- **Permission Isolation**: Proper scoping of features and navigation per tenant type
+
+### 💳 **Transaction Data Engine** (`apps/web/src/lib/sandbox.ts:149-274`)
+- **150 Realistic Transactions**: Diverse payment scenarios across 3 months
+- **Dynamic Filtering**: Status, date range, amount, currency, payment method
+- **CSV Export**: Full transaction export with proper formatting
+- **Pagination**: Configurable page sizes with proper navigation
+- **Statistics**: Real-time metrics calculation (volume, success rate, averages)
+
+### 🛡️ **Fraud Analytics Dashboard** (`apps/web/src/lib/sandbox.ts:370-475`)
+- **Risk Score Distribution**: Realistic scoring patterns across 0-100 range
+- **High-Risk Monitoring**: 25 flagged transactions with detailed risk factors
+- **Decision Analytics**: Approve/Review/Decline breakdown with percentages
+- **Performance Metrics**: Processing times and fraud detection KPIs
+- **Risk Factor Analysis**: Top 8 risk factors with occurrence tracking
+
+### 🔧 **API Route Integration** (`apps/web/src/app/api/`)
+```bash
+# Sandbox-aware endpoints (no authentication required in sandbox)
+GET /api/transactions       # Transaction list with filtering
+GET /api/transactions/stats # Transaction statistics  
+GET /api/fraud/stats        # Fraud analytics dashboard
+GET /api/fraud/high-risk-transactions # High-risk monitoring
+```
+
+### 🎯 **Sandbox Features**
+- ✅ **Auto-Detection**: Enabled on localhost/vercel.app domains
+- ✅ **Tenant Toggle**: Bottom-right widget for instant role switching
+- ✅ **Real-time Updates**: LocalStorage sync across browser tabs
+- ✅ **No Authentication**: Bypasses NextAuth in sandbox mode
+- ✅ **Full UI Coverage**: All dashboard pages populated with realistic data
+- ✅ **Type Safety**: Full TypeScript coverage with proper interfaces
+
+### 🔄 **Sandbox Mode Activation**
+```javascript
+// Automatic activation on:
+window.location.hostname.includes('localhost')
+window.location.hostname.includes('vercel.app') 
+process.env.NODE_ENV === 'development'
+process.env.NEXT_PUBLIC_SANDBOX_MODE === '1'
+
+// Manual tenant switching in sandbox
+localStorage.setItem('globapay-sandbox-tenant-type', 'admin')    // Admin
+localStorage.setItem('globapay-sandbox-tenant-type', 'platform') // Platform  
+localStorage.setItem('globapay-sandbox-tenant-type', 'merchant') // Merchant
 ```
 
 ## 📦 Deployment

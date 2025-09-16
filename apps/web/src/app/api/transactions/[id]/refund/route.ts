@@ -8,12 +8,6 @@ export async function POST(
   { params }: { params: { id: string } }
 ) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { id } = params;
     const body = await request.json();
     const { amount, reason } = body;
@@ -41,6 +35,13 @@ export async function POST(
         data: refund,
         message: 'Refund processed successfully' 
       });
+    }
+
+    // In production mode, check authentication
+    const session = await getServerSession(authOptions);
+    
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // In production mode, integrate with actual API

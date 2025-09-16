@@ -8,12 +8,6 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     const { searchParams } = new URL(request.url);
     const limit = parseInt(searchParams.get('limit') || '20');
 
@@ -26,6 +20,13 @@ export async function GET(request: NextRequest) {
         data: transactions,
         total: allTransactions.length
       });
+    }
+
+    // In production mode, check authentication
+    const session = await getServerSession(authOptions);
+    
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // In production mode, integrate with actual API

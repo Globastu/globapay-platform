@@ -8,16 +8,17 @@ import {
 
 export async function GET(request: NextRequest) {
   try {
-    const session = await getServerSession(authOptions);
-    
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    }
-
     // In sandbox mode, return generated fraud stats
     if (isSandboxMode()) {
       const stats = generateSandboxFraudStats();
       return NextResponse.json(stats);
+    }
+
+    // In production mode, check authentication
+    const session = await getServerSession(authOptions);
+    
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // In production mode, integrate with actual API
