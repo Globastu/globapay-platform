@@ -33,6 +33,24 @@ export interface PaymentLink {
   expires_at?: string;
 }
 
+export interface RefundRequest {
+  amount?: number; // Amount to refund in minor units (optional for partial refunds)
+  reason?: string; // Reason for refund
+  metadata?: Record<string, any>; // Additional metadata
+}
+
+export interface Refund {
+  id: string;
+  transaction_id: string;
+  amount: number;
+  currency: string;
+  status: 'pending' | 'succeeded' | 'failed';
+  reason?: string;
+  created_at: string;
+  updated_at: string;
+  metadata?: Record<string, any>;
+}
+
 export class Gr4vyService {
   private readonly baseUrl: string;
   private readonly apiKey: string;
@@ -125,6 +143,131 @@ export class Gr4vyService {
       };
     } catch (error) {
       console.error('Failed to get Gr4vy payment link:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Create a refund for a transaction
+   */
+  async createRefund(transactionId: string, request: RefundRequest): Promise<Refund> {
+    if (!this.apiKey) {
+      throw new Error('Gr4vy API key not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/transactions/${transactionId}/refunds`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+        body: JSON.stringify({
+          amount: request.amount,
+          reason: request.reason,
+          metadata: request.metadata,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Gr4vy refund API error: ${response.status} ${error}`);
+      }
+
+      const data = await response.json();
+      return {
+        id: data.id,
+        transaction_id: data.transaction_id,
+        amount: data.amount,
+        currency: data.currency,
+        status: data.status,
+        reason: data.reason,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        metadata: data.metadata,
+      };
+    } catch (error) {
+      console.error('Failed to create Gr4vy refund:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get refund details
+   */
+  async getRefund(refundId: string): Promise<Refund | null> {
+    if (!this.apiKey) {
+      throw new Error('Gr4vy API key not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/refunds/${refundId}`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (response.status === 404) {
+        return null;
+      }
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Gr4vy API error: ${response.status} ${error}`);
+      }
+
+      const data = await response.json();
+      return {
+        id: data.id,
+        transaction_id: data.transaction_id,
+        amount: data.amount,
+        currency: data.currency,
+        status: data.status,
+        reason: data.reason,
+        created_at: data.created_at,
+        updated_at: data.updated_at,
+        metadata: data.metadata,
+      };
+    } catch (error) {
+      console.error('Failed to get Gr4vy refund:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * List refunds for a transaction
+   */
+  async listTransactionRefunds(transactionId: string): Promise<Refund[]> {
+    if (!this.apiKey) {
+      throw new Error('Gr4vy API key not configured');
+    }
+
+    try {
+      const response = await fetch(`${this.baseUrl}/transactions/${transactionId}/refunds`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.text();
+        throw new Error(`Gr4vy API error: ${response.status} ${error}`);
+      }
+
+      const data = await response.json();
+      return data.items?.map((item: any) => ({
+        id: item.id,
+        transaction_id: item.transaction_id,
+        amount: item.amount,
+        currency: item.currency,
+        status: item.status,
+        reason: item.reason,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        metadata: item.metadata,
+      })) || [];
+    } catch (error) {
+      console.error('Failed to list Gr4vy refunds:', error);
       throw error;
     }
   }

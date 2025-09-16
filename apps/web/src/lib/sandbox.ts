@@ -40,12 +40,21 @@ export type { TenantType } from './tenant';
 
 // Sandbox mode detection
 export function isSandboxMode(): boolean {
-  if (typeof window === 'undefined') return false;
+  if (typeof window === 'undefined') {
+    // Server-side detection
+    return (
+      process.env.NODE_ENV === 'development' ||
+      process.env.NEXT_PUBLIC_SANDBOX_MODE === '1' ||
+      process.env.VERCEL_ENV === 'preview' ||
+      process.env.VERCEL_ENV === 'development'
+    );
+  }
   
-  // Check for sandbox indicators
+  // Client-side detection
   return (
     window.location.hostname.includes('localhost') ||
     window.location.hostname.includes('vercel.app') ||
+    window.location.hostname.includes('globapay-platform-') || // Vercel preview deployments
     process.env.NODE_ENV === 'development' ||
     process.env.NEXT_PUBLIC_SANDBOX_MODE === '1'
   );

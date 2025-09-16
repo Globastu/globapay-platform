@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { isSandboxMode } from '@/lib/sandbox';
+import { gr4vyService } from '@/lib/services/gr4vy';
 
 export async function POST(
   request: NextRequest,
@@ -44,11 +45,44 @@ export async function POST(
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // In production mode, integrate with actual API
-    return NextResponse.json(
-      { error: 'Refund processing not available' }, 
-      { status: 501 }
-    );
+    // In production mode, use Gr4vy API for actual refunds
+    try {
+      // Note: In a real implementation, you'd need to get the Gr4vy transaction ID
+      // from your database based on the transaction ID
+      const gr4vyTransactionId = id; // This should be looked up from your database
+      
+      const refund = await gr4vyService.createRefund(gr4vyTransactionId, {
+        amount,
+        reason,
+        metadata: {
+          refunded_by: session.user.id,
+          refunded_at: new Date().toISOString(),
+        }
+      });
+      
+      return NextResponse.json({ 
+        data: {
+          id: refund.id,
+          transactionId: id,
+          amount: refund.amount,
+          currency: refund.currency,
+          reason: refund.reason,
+          status: refund.status,
+          createdAt: refund.created_at,
+          updatedAt: refund.updated_at
+        },
+        message: 'Refund processed successfully via Gr4vy' 
+      });
+    } catch (error) {
+      console.error('Gr4vy refund failed:', error);
+      return NextResponse.json(
+        { 
+          error: 'Refund processing failed',
+          detail: error instanceof Error ? error.message : 'Unknown error'
+        }, 
+        { status: 500 }
+      );
+    }
     
   } catch (error) {
     console.error('Error processing refund:', error);
