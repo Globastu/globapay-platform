@@ -1,15 +1,19 @@
 import { Session } from 'next-auth';
 
-export type TenantType = 'platform' | 'merchant';
+export type TenantType = 'admin' | 'platform' | 'merchant';
 
 export interface TenantInfo {
   type: TenantType;
   organizationId: string;
   organizationName?: string;
-  merchantId?: string | undefined; // For single-tenant merchants
+  platformId?: string | undefined; // For platform-level users
+  merchantId?: string | undefined; // For merchant-level users
+  canManagePlatforms: boolean;
   canManageMerchants: boolean;
   canManageUsers: boolean;
+  canAccessAdminSettings: boolean;
   canAccessPlatformSettings: boolean;
+  canBillMerchants: boolean;
 }
 
 /**
@@ -23,24 +27,39 @@ export function getTenantInfo(session: Session | null): TenantInfo | null {
   const { user } = session;
   const permissions = user.permissions || [];
 
-  // Use the organizationType from the session, fall back to permission-based detection
-  const tenantType = user.organizationType || (
-    permissions.includes('ORGANIZATION_WRITE') || 
-    permissions.includes('MERCHANTS_WRITE') || 
-    user.role === 'PlatformAdmin' ? 'platform' : 'merchant'
-  );
+  // Determine tenant type from organizationType or permissions
+  let tenantType: TenantType;
+  if (user.organizationType) {
+    tenantType = user.organizationType as TenantType;
+  } else {
+    // Fallback permission-based detection
+    if (permissions.includes('ADMIN_GLOBAL') || user.role === 'GlobalAdmin') {
+      tenantType = 'admin';
+    } else if (permissions.includes('PLATFORM_MANAGE') || permissions.includes('MERCHANTS_WRITE') || user.role === 'PlatformAdmin') {
+      tenantType = 'platform';
+    } else {
+      tenantType = 'merchant';
+    }
+  }
 
   return {
     type: tenantType,
     organizationId: user.organizationId,
     organizationName: user.name, // This might need to be fetched separately
+    platformId: user.platformId || (tenantType === 'platform' ? user.organizationId : undefined),
     merchantId: user.merchantId || (tenantType === 'merchant' ? user.organizationId : undefined),
-    canManageMerchants: tenantType === 'platform' && permissions.includes('MERCHANTS_WRITE'),
+    canManagePlatforms: tenantType === 'admin' && permissions.includes('PLATFORMS_WRITE'),
+    canManageMerchants: (tenantType === 'admin' || tenantType === 'platform') && permissions.includes('MERCHANTS_WRITE'),
     canManageUsers: permissions.includes('USERS_WRITE'),
-    canAccessPlatformSettings: tenantType === 'platform' && (
-      permissions.includes('ORGANIZATION_WRITE') || 
+    canAccessAdminSettings: tenantType === 'admin' && (
+      permissions.includes('ADMIN_GLOBAL') || 
+      user.role === 'GlobalAdmin'
+    ),
+    canAccessPlatformSettings: (tenantType === 'admin' || tenantType === 'platform') && (
+      permissions.includes('PLATFORM_MANAGE') || 
       user.role === 'PlatformAdmin'
     ),
+    canBillMerchants: tenantType === 'platform' && permissions.includes('BILLING_MANAGE'),
   };
 }
 
@@ -54,26 +73,32 @@ export function hasPermission(
   if (!tenantInfo) return false;
 
   switch (permission) {
+    case 'manage_platforms':
+      return tenantInfo.canManagePlatforms;
     case 'manage_merchants':
       return tenantInfo.canManageMerchants;
     case 'manage_users':
       return tenantInfo.canManageUsers;
+    case 'access_admin_settings':
+      return tenantInfo.canAccessAdminSettings;
     case 'access_platform_settings':
       return tenantInfo.canAccessPlatformSettings;
+    case 'bill_merchants':
+      return tenantInfo.canBillMerchants;
     case 'view_all_transactions':
-      return tenantInfo.type === 'platform';
+      return tenantInfo.type === 'admin' || tenantInfo.type === 'platform';
     case 'create_payment_links':
-      return true; // Both tenant types can create payment links
+      return tenantInfo.type === 'platform' || tenantInfo.type === 'merchant';
     case 'access_invoices':
-      return true; // Both tenant types can access invoices
+      return tenantInfo.type === 'platform' || tenantInfo.type === 'merchant';
     case 'access_checkout_builder':
-      return true; // Both tenant types can access checkout builder
+      return tenantInfo.type === 'platform' || tenantInfo.type === 'merchant';
     case 'access_fraud_management':
-      return tenantInfo.type === 'platform'; // Platform only for now
+      return tenantInfo.type === 'admin' || tenantInfo.type === 'platform';
     case 'access_reports':
-      return true; // Both tenant types can access reports
+      return true; // All tenant types can access reports
     case 'access_platforms':
-      return tenantInfo.canAccessPlatformSettings;
+      return tenantInfo.canManagePlatforms;
     default:
       return false;
   }
@@ -127,18 +152,22 @@ export function getTenantPageTitle(
 ): string {
   if (!tenantInfo) return basePage;
 
-  const prefix = tenantInfo.type === 'platform' ? 'Platform' : 'Merchant';
+  const prefix = tenantInfo.type === 'admin' ? 'Admin' : 
+                 tenantInfo.type === 'platform' ? 'Platform' : 'Merchant';
   
   switch (basePage.toLowerCase()) {
     case 'overview':
     case 'dashboard':
       return `${prefix} Dashboard`;
     case 'transactions':
-      return tenantInfo.type === 'platform' ? 'All Transactions' : 'My Transactions';
+      return tenantInfo.type === 'merchant' ? 'My Transactions' : 'All Transactions';
+    case 'platforms':
+      return 'Platform Management';
     case 'merchants':
-      return 'Merchant Management';
+      return tenantInfo.type === 'admin' ? 'Platform & Merchant Management' : 'Merchant Management';
     case 'settings':
-      return tenantInfo.type === 'platform' ? 'Platform Settings' : 'Merchant Settings';
+      return tenantInfo.type === 'admin' ? 'Admin Settings' : 
+             tenantInfo.type === 'platform' ? 'Platform Settings' : 'Merchant Settings';
     default:
       return basePage;
   }
@@ -157,8 +186,10 @@ export function getTenantLabels(tenantInfo: TenantInfo | null) {
   }
 
   return {
-    organizationLabel: tenantInfo.type === 'platform' ? 'Platform' : 'Merchant',
-    transactionsLabel: tenantInfo.type === 'platform' ? 'All Transactions' : 'My Transactions',
-    settingsLabel: tenantInfo.type === 'platform' ? 'Platform Settings' : 'Account Settings'
+    organizationLabel: tenantInfo.type === 'admin' ? 'Admin' : 
+                      tenantInfo.type === 'platform' ? 'Platform' : 'Merchant',
+    transactionsLabel: tenantInfo.type === 'merchant' ? 'My Transactions' : 'All Transactions',
+    settingsLabel: tenantInfo.type === 'admin' ? 'Admin Settings' : 
+                   tenantInfo.type === 'platform' ? 'Platform Settings' : 'Account Settings'
   };
 }

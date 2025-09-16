@@ -58,18 +58,22 @@ export function useTenant() {
   return {
     tenantInfo,
     isLoading: isSandboxMode() ? false : status === 'loading',
+    isAdmin: tenantInfo?.type === 'admin',
     isPlatform: tenantInfo?.type === 'platform',
     isMerchant: tenantInfo?.type === 'merchant',
     checkPermission,
     getPageTitle,
     labels,
     // Convenience permission checks
+    canManagePlatforms: checkPermission('manage_platforms'),
     canManageMerchants: checkPermission('manage_merchants'),
     canManageUsers: checkPermission('manage_users'),
+    canAccessAdminSettings: checkPermission('access_admin_settings'),
     canAccessPlatformSettings: checkPermission('access_platform_settings'),
     canViewAllTransactions: checkPermission('view_all_transactions'),
     canAccessFraudManagement: checkPermission('access_fraud_management'),
     canAccessPlatforms: checkPermission('access_platforms'),
+    canBillMerchants: checkPermission('bill_merchants'),
     // Sandbox-specific properties
     isSandbox: isSandboxMode(),
   };

@@ -11,7 +11,8 @@ declare module 'next-auth' {
       email: string;
       name: string;
       organizationId: string;
-      organizationType: 'platform' | 'merchant';
+      organizationType: 'admin' | 'platform' | 'merchant';
+      platformId?: string | undefined;
       merchantId?: string | undefined;
       permissions: string[];
       role: string;
@@ -25,7 +26,8 @@ declare module 'next-auth' {
     email: string;
     name: string;
     organizationId: string;
-    organizationType: 'platform' | 'merchant';
+    organizationType: 'admin' | 'platform' | 'merchant';
+    platformId?: string | undefined;
     merchantId?: string | undefined;
     permissions: string[];
     role: string;
@@ -38,7 +40,8 @@ declare module 'next-auth/jwt' {
   interface JWT {
     userId: string;
     organizationId: string;
-    organizationType: 'platform' | 'merchant';
+    organizationType: 'admin' | 'platform' | 'merchant';
+    platformId?: string | undefined;
     merchantId?: string | undefined;
     permissions: string[];
     role: string;
@@ -100,10 +103,18 @@ export const authOptions: NextAuthOptions = {
           const data = await response.json();
           const role = getUserRole(data.user.permissions);
 
-          // For now, determine organization type from permissions
+          // Determine organization type from permissions
           // In a real app, this would come from the API response
-          const organizationType = data.user.permissions.includes('ORGANIZATION_WRITE') || 
-                                  data.user.permissions.includes('MERCHANTS_WRITE') ? 'platform' : 'merchant';
+          let organizationType: 'admin' | 'platform' | 'merchant';
+          if (data.user.permissions.includes('ADMIN_GLOBAL') || role === 'GlobalAdmin') {
+            organizationType = 'admin';
+          } else if (data.user.permissions.includes('PLATFORM_MANAGE') || 
+                     data.user.permissions.includes('MERCHANTS_WRITE') || 
+                     role === 'PlatformAdmin') {
+            organizationType = 'platform';
+          } else {
+            organizationType = 'merchant';
+          }
           
           return {
             id: data.user.id,
@@ -111,6 +122,7 @@ export const authOptions: NextAuthOptions = {
             name: data.user.name,
             organizationId: data.user.organizationId,
             organizationType,
+            platformId: organizationType === 'platform' ? data.user.organizationId : undefined,
             merchantId: organizationType === 'merchant' ? data.user.organizationId : undefined,
             permissions: data.user.permissions,
             role,
@@ -133,6 +145,7 @@ export const authOptions: NextAuthOptions = {
           userId: user.id,
           organizationId: user.organizationId,
           organizationType: user.organizationType,
+          platformId: user.platformId,
           merchantId: user.merchantId,
           permissions: user.permissions,
           role: user.role,
@@ -159,6 +172,7 @@ export const authOptions: NextAuthOptions = {
           name: token.name as string,
           organizationId: token.organizationId,
           organizationType: token.organizationType,
+          platformId: token.platformId,
           merchantId: token.merchantId,
           permissions: token.permissions,
           role: token.role,

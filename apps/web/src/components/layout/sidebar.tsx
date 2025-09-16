@@ -129,7 +129,8 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
               <div className="ml-3 flex flex-col">
                 <span className="text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
-                  {tenantInfo?.type === 'platform' ? 'Platform' : 'Merchant'}
+                  {tenantInfo?.type === 'admin' ? 'Admin' : 
+                   tenantInfo?.type === 'platform' ? 'Platform' : 'Merchant'}
                 </span>
               </div>
               <Button
