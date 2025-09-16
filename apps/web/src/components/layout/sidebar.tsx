@@ -13,9 +13,11 @@ import {
   Receipt,
   Code,
   ChevronLeft,
+  ChevronRight,
   Menu,
   Building
 } from 'lucide-react';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/hooks/use-tenant';
@@ -93,6 +95,72 @@ interface SidebarProps {
   pathname: string;
 }
 
+// Component to handle logo display with fallbacks
+function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; className?: string }) {
+  if (collapsed) {
+    // Try to load company icon, fallback to placeholder, then to "G"
+    return (
+      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", className)}>
+        <Image
+          src="/images/branding/icon.svg"
+          alt="Company Icon"
+          width={32}
+          height={32}
+          className="rounded-lg"
+          onError={(e) => {
+            // Fallback to PNG if SVG fails
+            const img = e.target as HTMLImageElement;
+            if (img.src.includes('.svg')) {
+              img.src = '/images/branding/icon.png';
+            } else {
+              // Ultimate fallback to letter
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) {
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent"><span class="text-sm font-bold text-white">G</span></div>';
+              }
+            }
+          }}
+        />
+      </div>
+    );
+  }
+
+  // Expanded sidebar - show full logo
+  return (
+    <div className={cn("flex items-center", className)}>
+      <Image
+        src="/images/branding/logo.svg"
+        alt="Company Logo"
+        width={200}
+        height={40}
+        className="h-8 w-auto"
+        onError={(e) => {
+          // Fallback chain: logo.svg -> logo.png -> manual layout with icon + text
+          const img = e.target as HTMLImageElement;
+          if (img.src.includes('logo.svg')) {
+            img.src = '/images/branding/logo.png';
+          } else {
+            // Ultimate fallback - hide image and show manual layout
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (parent) {
+              parent.innerHTML = `
+                <div class="flex items-center">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
+                    <span class="text-sm font-bold text-white">G</span>
+                  </div>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
+                </div>
+              `;
+            }
+          }
+        }}
+      />
+    </div>
+  );
+}
+
 export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps) {
   const { tenantInfo, isLoading, labels } = useTenant();
 
@@ -120,39 +188,34 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
     <div className="flex h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
       {/* Header */}
       <div className="flex h-16 items-center px-4 border-b border-gray-200 dark:border-gray-800">
-        <div className={cn('flex items-center', collapsed && 'justify-center w-full')}>
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-            <span className="text-sm font-bold text-white">G</span>
-          </div>
-          {!collapsed && (
-            <>
+        <div className={cn('flex items-center w-full', collapsed ? 'justify-center' : 'justify-between')}>
+          {/* Logo Section */}
+          <div className="flex items-center">
+            <CompanyLogo collapsed={collapsed} />
+            {!collapsed && (
               <div className="ml-3 flex flex-col">
-                <span className="text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
                 <span className="text-xs text-gray-500 dark:text-gray-400">
                   {tenantInfo?.type === 'admin' ? 'Admin' : 
                    tenantInfo?.type === 'platform' ? 'Platform' : 'Merchant'}
                 </span>
               </div>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto h-8 w-8 p-0"
-                onClick={() => onCollapsedChange(!collapsed)}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-            </>
-          )}
-          {collapsed && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-8 w-8 p-0 lg:hidden"
-              onClick={() => onCollapsedChange(false)}
-            >
-              <Menu className="h-4 w-4" />
-            </Button>
-          )}
+            )}
+          </div>
+
+          {/* Collapse/Expand Button - Always visible with directional arrow */}
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-8 w-8 p-0 flex-shrink-0"
+            onClick={() => onCollapsedChange(!collapsed)}
+            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          >
+            {collapsed ? (
+              <ChevronRight className="h-4 w-4" />
+            ) : (
+              <ChevronLeft className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
 

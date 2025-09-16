@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useSession, signOut } from 'next-auth/react';
+import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from '../providers/theme-provider';
 import { 
   Search,
@@ -13,7 +14,7 @@ import {
   Sun,
   Moon,
   Monitor,
-  ChevronLeft,
+  ArrowLeft,
   Database,
   ChevronDown
 } from 'lucide-react';
@@ -53,10 +54,39 @@ export function Topbar({
 }: TopbarProps) {
   const { data: session } = useSession();
   const { theme, setTheme } = useTheme();
+  const router = useRouter();
+  const pathname = usePathname();
   const [searchQuery, setSearchQuery] = useState('');
   const [environment, setEnvironment] = useState(
     process.env.NEXT_PUBLIC_GR4VY_ENV || 'sandbox'
   );
+
+  // Determine if we should show a back button based on the current path
+  const shouldShowBackButton = () => {
+    const isDetailPage = pathname.includes('/') && pathname !== '/' && 
+      (pathname.split('/').length > 2 || 
+       pathname.includes('/transactions/') ||
+       pathname.includes('/merchants/') ||
+       pathname.includes('/platforms/') ||
+       pathname.includes('/invoices/'));
+    return isDetailPage;
+  };
+
+  const handleBack = () => {
+    // First try browser back, fallback to parent route
+    if (window.history.length > 1) {
+      router.back();
+    } else {
+      // Fallback: navigate to parent route
+      const pathParts = pathname.split('/').filter(Boolean);
+      if (pathParts.length > 1) {
+        pathParts.pop();
+        router.push('/' + pathParts.join('/'));
+      } else {
+        router.push('/');
+      }
+    }
+  };
 
   const handleSignOut = () => {
     signOut({ callbackUrl: '/auth/signin' });
@@ -99,18 +129,19 @@ export function Topbar({
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Desktop sidebar toggle */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden lg:flex"
-            onClick={onSidebarToggle}
-          >
-            <ChevronLeft className={cn(
-              'h-5 w-5 transition-transform',
-              sidebarCollapsed && 'rotate-180'
-            )} />
-          </Button>
+          {/* Back button - only show on detail pages */}
+          {shouldShowBackButton() && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              title="Go back"
+              className="flex items-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              <span className="hidden sm:inline">Back</span>
+            </Button>
+          )}
 
           {/* Global Search */}
           <div className="relative hidden sm:flex">
