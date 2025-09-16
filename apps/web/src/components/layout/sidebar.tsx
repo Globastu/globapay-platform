@@ -113,11 +113,11 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
             if (img.src.includes('.svg')) {
               img.src = '/images/branding/icon.png';
             } else {
-              // Ultimate fallback to letter
+              // Ultimate fallback to letter - ensure we show fallback in demo mode
               img.style.display = 'none';
               const parent = img.parentElement;
               if (parent) {
-                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent"><span class="text-sm font-bold text-white">G</span></div>';
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"><span class="text-sm font-bold text-white">S</span></div>';
               }
             }
           }}
@@ -136,11 +136,11 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
             } else if (img.src.includes('.svg')) {
               img.src = '/images/branding/icon.png';
             } else {
-              // Ultimate fallback to letter
+              // Ultimate fallback to letter - ensure we show fallback in demo mode
               img.style.display = 'none';
               const parent = img.parentElement;
               if (parent) {
-                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent"><span class="text-sm font-bold text-white">G</span></div>';
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"><span class="text-sm font-bold text-white">S</span></div>';
               }
             }
           }}
@@ -164,16 +164,16 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
           if (img.src.includes('logo.svg')) {
             img.src = '/images/branding/logo.png';
           } else {
-            // Ultimate fallback - hide image and show manual layout
+            // Ultimate fallback - hide image and show manual layout with demo branding
             img.style.display = 'none';
             const parent = img.parentElement;
             if (parent) {
               parent.innerHTML = `
                 <div class="flex items-center">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-                    <span class="text-sm font-bold text-white">G</span>
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+                    <span class="text-sm font-bold text-white">S</span>
                   </div>
-                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Source</span>
                 </div>
               `;
             }
@@ -194,16 +194,16 @@ function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; classN
           } else if (img.src.includes('logo.svg')) {
             img.src = '/images/branding/logo.png';
           } else {
-            // Ultimate fallback - hide image and show manual layout
+            // Ultimate fallback - hide image and show manual layout with demo branding
             img.style.display = 'none';
             const parent = img.parentElement;
             if (parent) {
               parent.innerHTML = `
                 <div class="flex items-center">
-                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-accent">
-                    <span class="text-sm font-bold text-white">G</span>
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+                    <span class="text-sm font-bold text-white">S</span>
                   </div>
-                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Globapay</span>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Source</span>
                 </div>
               `;
             }
@@ -238,18 +238,12 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
   const tenantFilteredNavigation = isLoading ? filteredNavigation : filterNavigationByTenant(filteredNavigation, tenantInfo);
 
   return (
-    <div className="flex h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800">
+    <div className="flex h-full flex-col bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 relative">
       {/* Header */}
-      <div className="flex h-16 items-center border-b border-gray-200 dark:border-gray-800">
-        <div className={cn(
-          'flex items-center w-full',
-          collapsed ? 'flex-col justify-center px-2 py-2' : 'justify-between px-4'
-        )}>
+      <div className="flex h-16 items-center px-4 border-b border-gray-200 dark:border-gray-800">
+        <div className="flex items-center w-full">
           {/* Logo Section */}
-          <div className={cn(
-            'flex items-center',
-            collapsed ? 'mb-2' : 'flex-1 min-w-0'
-          )}>
+          <div className="flex items-center flex-1 min-w-0">
             <CompanyLogo collapsed={collapsed} />
             {!collapsed && (
               <div className="ml-3 flex flex-col">
@@ -260,26 +254,23 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
               </div>
             )}
           </div>
-
-          {/* Collapse/Expand Button - Always visible with directional arrow */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "h-8 w-8 p-0 flex-shrink-0",
-              collapsed ? "" : "ml-2"
-            )}
-            onClick={() => onCollapsedChange(!collapsed)}
-            title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            {collapsed ? (
-              <ChevronRight className="h-4 w-4" />
-            ) : (
-              <ChevronLeft className="h-4 w-4" />
-            )}
-          </Button>
         </div>
       </div>
+
+      {/* Floating Collapse/Expand Button - Center edge of sidebar */}
+      <Button
+        variant="secondary"
+        size="sm"
+        className="absolute top-1/2 -translate-y-1/2 -right-3 h-6 w-6 p-0 flex-shrink-0 rounded-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-md hover:shadow-lg z-10"
+        onClick={() => onCollapsedChange(!collapsed)}
+        title={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+      >
+        {collapsed ? (
+          <ChevronRight className="h-3 w-3" />
+        ) : (
+          <ChevronLeft className="h-3 w-3" />
+        )}
+      </Button>
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1 p-3 overflow-y-auto">
