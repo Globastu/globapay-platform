@@ -98,24 +98,119 @@ interface SidebarProps {
 
 // Component to handle logo display with fallbacks
 function CompanyLogo({ collapsed, className = "", isSandbox = false }: { collapsed: boolean; className?: string; isSandbox?: boolean }) {
-  // Always show demo branding in sandbox mode for consistency
   if (collapsed) {
+    // Collapsed sidebar - show icon
     return (
-      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm", className)}>
-        <span className="text-sm font-bold text-white">{isSandbox ? 'S' : 'G'}</span>
+      <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg", className)}>
+        <Image
+          src="/images/branding/icon.svg"
+          alt="Company Icon"
+          width={32}
+          height={32}
+          className="rounded-lg dark:hidden"
+          onError={(e) => {
+            // Fallback to PNG if SVG fails
+            const img = e.target as HTMLImageElement;
+            if (img.src.includes('.svg')) {
+              img.src = '/images/branding/icon.png';
+            } else {
+              // Ultimate fallback to letter
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) {
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"><span class="text-sm font-bold text-white">S</span></div>';
+              }
+            }
+          }}
+        />
+        <Image
+          src="/images/branding/icon-dark.svg"
+          alt="Company Icon Dark"
+          width={32}
+          height={32}
+          className="rounded-lg hidden dark:block"
+          onError={(e) => {
+            // Fallback to regular icon in dark mode if dark icon fails
+            const img = e.target as HTMLImageElement;
+            if (img.src.includes('icon-dark.svg')) {
+              img.src = '/images/branding/icon.svg';
+            } else if (img.src.includes('.svg')) {
+              img.src = '/images/branding/icon.png';
+            } else {
+              // Ultimate fallback to letter
+              img.style.display = 'none';
+              const parent = img.parentElement;
+              if (parent) {
+                parent.innerHTML = '<div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm"><span class="text-sm font-bold text-white">S</span></div>';
+              }
+            }
+          }}
+        />
       </div>
     );
   }
 
-  // Expanded sidebar - show demo branding
+  // Expanded sidebar - show full logo
   return (
     <div className={cn("flex items-center", className)}>
-      <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
-        <span className="text-sm font-bold text-white">{isSandbox ? 'S' : 'G'}</span>
-      </div>
-      <span className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">
-        {isSandbox ? 'Source' : 'Globapay'}
-      </span>
+      <Image
+        src="/images/branding/logo.svg"
+        alt="Company Logo"
+        width={200}
+        height={40}
+        className="h-8 w-auto dark:hidden"
+        onError={(e) => {
+          // Fallback chain: logo.svg -> logo.png -> manual layout with icon + text
+          const img = e.target as HTMLImageElement;
+          if (img.src.includes('logo.svg')) {
+            img.src = '/images/branding/logo.png';
+          } else {
+            // Ultimate fallback - hide image and show manual layout
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (parent) {
+              parent.innerHTML = `
+                <div class="flex items-center">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+                    <span class="text-sm font-bold text-white">S</span>
+                  </div>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Source</span>
+                </div>
+              `;
+            }
+          }
+        }}
+      />
+      <Image
+        src="/images/branding/logo-dark.svg"
+        alt="Company Logo Dark"
+        width={200}
+        height={40}
+        className="h-8 w-auto hidden dark:block"
+        onError={(e) => {
+          // Fallback to regular logo in dark mode if dark logo fails
+          const img = e.target as HTMLImageElement;
+          if (img.src.includes('logo-dark.svg')) {
+            img.src = '/images/branding/logo.svg';
+          } else if (img.src.includes('logo.svg')) {
+            img.src = '/images/branding/logo.png';
+          } else {
+            // Ultimate fallback - hide image and show manual layout
+            img.style.display = 'none';
+            const parent = img.parentElement;
+            if (parent) {
+              parent.innerHTML = `
+                <div class="flex items-center">
+                  <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
+                    <span class="text-sm font-bold text-white">S</span>
+                  </div>
+                  <span class="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Source</span>
+                </div>
+              `;
+            }
+          }
+        }}
+      />
     </div>
   );
 }
