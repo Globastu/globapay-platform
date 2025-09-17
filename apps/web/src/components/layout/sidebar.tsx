@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useTenant } from '@/hooks/use-tenant';
 import { filterNavigationByTenant } from '@/lib/tenant';
+import { isSandboxMode } from '@/lib/sandbox';
 
 interface NavigationItem {
   name: string;
@@ -96,30 +97,31 @@ interface SidebarProps {
 }
 
 // Component to handle logo display with fallbacks
-function CompanyLogo({ collapsed, className = "" }: { collapsed: boolean; className?: string }) {
-  // For now, always show fallback branding until custom logos are added
-  // This ensures consistent display across localhost and Vercel
+function CompanyLogo({ collapsed, className = "", isSandbox = false }: { collapsed: boolean; className?: string; isSandbox?: boolean }) {
+  // Always show demo branding in sandbox mode for consistency
   if (collapsed) {
     return (
       <div className={cn("flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm", className)}>
-        <span className="text-sm font-bold text-white">S</span>
+        <span className="text-sm font-bold text-white">{isSandbox ? 'S' : 'G'}</span>
       </div>
     );
   }
 
-  // Expanded sidebar - show fallback branding
+  // Expanded sidebar - show demo branding
   return (
     <div className={cn("flex items-center", className)}>
       <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 shadow-sm">
-        <span className="text-sm font-bold text-white">S</span>
+        <span className="text-sm font-bold text-white">{isSandbox ? 'S' : 'G'}</span>
       </div>
-      <span className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">Source</span>
+      <span className="ml-3 text-lg font-semibold text-gray-900 dark:text-white">
+        {isSandbox ? 'Source' : 'Globapay'}
+      </span>
     </div>
   );
 }
 
 export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps) {
-  const { tenantInfo, isLoading, labels } = useTenant();
+  const { tenantInfo, isLoading, labels, isSandbox } = useTenant();
 
   // Filter navigation based on feature flags and tenant permissions
   const filteredNavigation = navigation.filter(item => {
@@ -148,7 +150,7 @@ export function Sidebar({ collapsed, onCollapsedChange, pathname }: SidebarProps
         <div className="flex items-center w-full">
           {/* Logo Section */}
           <div className="flex items-center flex-1 min-w-0">
-            <CompanyLogo collapsed={collapsed} />
+            <CompanyLogo collapsed={collapsed} isSandbox={isSandbox} />
             {!collapsed && (
               <div className="ml-3 flex flex-col">
                 <span className="text-xs text-gray-500 dark:text-gray-400">
